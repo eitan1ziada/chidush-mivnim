@@ -19,29 +19,36 @@ export default function Home() {
   const [loaded, setLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Ping-pong video — plays forward, then backward, seamlessly
+  // Ping-pong: plays forward normally, then reverses at same speed, loops
   useEffect(() => {
     if (!loaded) return;
     const video = videoRef.current;
     if (!video) return;
-    let forward = true;
     let rafId: number;
+    let reversing = false;
 
-    const step = () => {
-      if (!video.duration) { rafId = requestAnimationFrame(step); return; }
-      if (forward) {
-        video.currentTime += 0.033;
-        if (video.currentTime >= video.duration - 0.05) forward = false;
+    const reverseStep = () => {
+      video.currentTime = Math.max(0, video.currentTime - 1 / 60);
+      if (video.currentTime <= 0) {
+        reversing = false;
+        video.play();
       } else {
-        video.currentTime -= 0.033;
-        if (video.currentTime <= 0.05) forward = true;
+        rafId = requestAnimationFrame(reverseStep);
       }
-      rafId = requestAnimationFrame(step);
     };
 
-    video.pause();
-    rafId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(rafId);
+    const onEnded = () => {
+      reversing = true;
+      rafId = requestAnimationFrame(reverseStep);
+    };
+
+    video.addEventListener("ended", onEnded);
+    video.play();
+
+    return () => {
+      video.removeEventListener("ended", onEnded);
+      cancelAnimationFrame(rafId);
+    };
   }, [loaded]);
 
   useEffect(() => {
