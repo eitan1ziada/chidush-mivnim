@@ -7,6 +7,7 @@ export default function Hero() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fadeRef = useRef<HTMLDivElement>(null);
 
   // Scrub video by scroll
   useEffect(() => {
@@ -31,6 +32,12 @@ export default function Hero() {
         const fadeOut = Math.max(0, 1 - progress * 3);
         textRef.current.style.opacity = String(fadeOut);
         textRef.current.style.transform = `translateY(${progress * -60}px)`;
+      }
+
+      // Fade to black at the end for clean transition
+      if (fadeRef.current) {
+        const fadeIn = Math.max(0, (progress - 0.75) * 4);
+        fadeRef.current.style.opacity = String(fadeIn);
       }
     };
 
@@ -81,8 +88,8 @@ export default function Hero() {
 
   return (
     <>
-      {/* Scroll container — 300vh gives room to scrub the full video */}
-      <section ref={sectionRef} style={{ height: "300vh", position: "relative" }}>
+      {/* Scroll container — 250vh gives room to scrub the full video */}
+      <section ref={sectionRef} style={{ height: "250vh", position: "relative" }}>
 
         {/* Sticky viewport — stays fixed while scrolling through 300vh */}
         <div style={{ position: "sticky", top: 0, height: "100vh", overflow: "hidden" }}>
@@ -124,6 +131,15 @@ export default function Hero() {
               position: "absolute", bottom: 0, left: 0, right: 0, height: "200px",
               background: "linear-gradient(to bottom, transparent, #080807)",
               pointerEvents: "none", zIndex: 10,
+            }}
+          />
+
+          {/* Full black fade at end of scroll — clean transition */}
+          <div
+            ref={fadeRef}
+            style={{
+              position: "absolute", inset: 0, background: "#080807",
+              opacity: 0, pointerEvents: "none", zIndex: 15,
             }}
           />
 
