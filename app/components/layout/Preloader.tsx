@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ShaderAnimation } from "@/app/components/ui/shader-animation";
 
 export default function Preloader({ onDone }: { onDone: () => void }) {
   const [exiting, setExiting] = useState(false);
@@ -29,7 +30,7 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
           transition={{ duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
           style={{ position: "fixed", inset: 0, zIndex: 9999, overflow: "hidden", background: "#000" }}
         >
-          {/* Video background */}
+          {/* Layer 1: Video background */}
           <video
             autoPlay
             muted
@@ -46,10 +47,19 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
             <source src="/house-animation.mp4" type="video/mp4" />
           </video>
 
-          {/* Dark overlay */}
+          {/* Layer 2: Shader animation overlay (mix-blend-mode for effect) */}
+          <div style={{
+            position: "absolute", inset: 0,
+            mixBlendMode: "screen",
+            opacity: 0.35,
+          }}>
+            <ShaderAnimation />
+          </div>
+
+          {/* Layer 3: Dark gradient overlay */}
           <div style={{
             position: "absolute", inset: 0, pointerEvents: "none",
-            background: "linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.5) 100%)",
+            background: "linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.45) 100%)",
           }} />
 
           {/* Brand name */}
@@ -68,7 +78,7 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
               fontSize: "clamp(28px, 5vw, 60px)", fontWeight: 800, letterSpacing: "0.1em",
               background: "linear-gradient(135deg, #9A7A2E, #C9A84C, #E8C97A, #C9A84C)",
               WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
-              marginBottom: "16px", textShadow: "none",
+              marginBottom: "16px",
             }}>
               חידוש מבנים
             </div>
