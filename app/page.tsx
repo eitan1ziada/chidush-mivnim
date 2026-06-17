@@ -37,7 +37,6 @@ export default function Home() {
       <Preloader onDone={() => setLoaded(true)} />
       {loaded && (
         <>
-          <Cursor />
           <ScrollProgress />
           <Navbar />
           <main>
