@@ -1,341 +1,348 @@
 "use client";
-import { useRef, useEffect, useState, Suspense, useMemo } from "react";
+import React, { useRef, useEffect, useState, Suspense, useMemo } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { gsap } from "gsap";
 import { motion, AnimatePresence } from "framer-motion";
 import * as THREE from "three";
 
-/* ─────────────────────────────────────────────────────────────
-   GOLD DUST PARTICLES — atmospheric floating specks
-   ───────────────────────────────────────────────────────────── */
-function GoldParticles() {
-  const ref = useRef<THREE.Points>(null);
-
-  const { positions } = useMemo(() => {
-    const count = 120;
-    const positions = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      positions[i * 3]     = (Math.random() - 0.5) * 18;
-      positions[i * 3 + 1] = Math.random() * 7;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 18;
-    }
-    return { positions };
-  }, []);
-
-  useFrame((_, delta) => {
-    if (ref.current) {
-      ref.current.rotation.y += delta * 0.04;
-      (ref.current.material as THREE.PointsMaterial).opacity =
-        0.3 + Math.sin(Date.now() * 0.001) * 0.1;
-    }
-  });
-
+/* ─────────────────────────────────────────────
+   BLUEPRINT GRID — fades in at the very start
+   ───────────────────────────────────────────── */
+function Blueprint({ visible }: { visible: boolean }) {
+  const ref = useRef<THREE.GridHelper>(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    const mat = ref.current.material as THREE.LineBasicMaterial;
+    mat.transparent = true;
+    mat.opacity = 0;
+    if (visible) gsap.to(mat, { opacity: 0.45, duration: 0.7, ease: "power2.out" });
+    else         gsap.to(mat, { opacity: 0,    duration: 0.5 });
+  }, [visible]);
   return (
-    <points ref={ref}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          args={[positions, 3]}
-        />
-      </bufferGeometry>
-      <pointsMaterial
-        size={0.04}
-        color="#C9A84C"
-        transparent
-        opacity={0.3}
-        sizeAttenuation
-      />
-    </points>
+    <gridHelper
+      ref={ref}
+      args={[20, 40, "#6B8EC8", "#6B8EC8"]}
+      position={[0, 0.002, 0]}
+    />
   );
 }
 
-/* ─────────────────────────────────────────────────────────────
-   GRID FLOOR — glowing gold lines on dark ground
-   ───────────────────────────────────────────────────────────── */
-function GlowGrid() {
+/* ─────────────────────────────────────────────
+   LAWN — soft green ground plane
+   ───────────────────────────────────────────── */
+function Lawn() {
   return (
     <>
-      {/* dark ground plane */}
+      {/* main ground */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
         <planeGeometry args={[40, 40]} />
-        <meshStandardMaterial color="#080706" roughness={1} metalness={0} />
+        <meshStandardMaterial color="#D8E8C8" roughness={1} />
       </mesh>
-      {/* gold grid overlay */}
-      <gridHelper
-        args={[16, 32, "#C9A84C", "#C9A84C"]}
-        position={[0, 0.001, 0]}
-      />
+      {/* stone path strip in front of house */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.005, 3.4]} receiveShadow>
+        <planeGeometry args={[5, 2.5]} />
+        <meshStandardMaterial color="#D4CECC" roughness={0.95} />
+      </mesh>
     </>
   );
 }
 
-/* ─────────────────────────────────────────────────────────────
-   ORBITING CAMERA — slow cinematic rotation
-   ───────────────────────────────────────────────────────────── */
-function OrbitalCamera({ paused }: { paused: boolean }) {
+/* ─────────────────────────────────────────────
+   CAMERA — cinematic 3/4 angle, slow orbit
+   ───────────────────────────────────────────── */
+function SceneCamera({ orbit }: { orbit: boolean }) {
   const { camera } = useThree();
-  const angle = useRef(Math.PI / 5); // starting angle
+  const angle = useRef(0.42);
 
   useEffect(() => {
-    // Initial position
-    camera.position.set(9, 5, 9);
-    (camera as THREE.PerspectiveCamera).fov = 36;
+    (camera as THREE.PerspectiveCamera).fov = 34;
     camera.updateProjectionMatrix();
+    camera.position.set(10, 5, 10);
     camera.lookAt(0, 1.2, 0);
   }, [camera]);
 
-  useFrame((_, delta) => {
-    if (paused) return;
-    angle.current += delta * 0.14;
-    const r = 9.5;
+  useFrame((_, dt) => {
+    if (!orbit) return;
+    angle.current += dt * 0.1;
+    const r = 11;
     camera.position.x = Math.sin(angle.current) * r;
     camera.position.z = Math.cos(angle.current) * r;
-    camera.position.y = 4.5 + Math.sin(angle.current * 0.4) * 0.6;
+    camera.position.y = 4.5 + Math.sin(angle.current * 0.3) * 0.4;
     camera.lookAt(0, 1.2, 0);
   });
 
   return null;
 }
 
-/* ─────────────────────────────────────────────────────────────
-   HOUSE SCENE — luxury dark villa with GSAP build timeline
-   ───────────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────
+   HOUSE SCENE — premium white modern villa
+   ───────────────────────────────────────────── */
 function HouseScene({ onDone }: { onDone: () => void }) {
-  const [cameraFree, setCameraFree] = useState(true);
+  const [showGrid, setShowGrid]   = useState(false);
+  const [orbitCam, setOrbitCam]   = useState(false);
 
-  // Group refs — each part starts with scale.y = 0 (rises from its base)
-  const rPlatform  = useRef<THREE.Group>(null);
-  const rWBack     = useRef<THREE.Group>(null);
-  const rWLeft     = useRef<THREE.Group>(null);
-  const rWRight    = useRef<THREE.Group>(null);
-  const rWFrL      = useRef<THREE.Group>(null);
-  const rWFrR      = useRef<THREE.Group>(null);
-  const rGlass     = useRef<THREE.Group>(null);
-  const rSlats     = useRef<THREE.Group>(null);
-  const rRoof      = useRef<THREE.Group>(null);
-  const rLight     = useRef<THREE.PointLight>(null);
+  /* --- group refs (all start scale.y=0, rise from base) --- */
+  const rFoundation = useRef<THREE.Group>(null);
+  // main block walls
+  const rWallBack   = useRef<THREE.Group>(null);
+  const rWallLeft   = useRef<THREE.Group>(null);
+  const rWallRight  = useRef<THREE.Group>(null);
+  const rWallFrL    = useRef<THREE.Group>(null); // front-left solid
+  const rWallFrR    = useRef<THREE.Group>(null); // front-right solid
+  // glass + frames
+  const rGlass      = useRef<THREE.Group>(null);
+  // wood panels
+  const rWood       = useRef<THREE.Group>(null);
+  // main roof
+  const rRoof       = useRef<THREE.Group>(null);
+  // side wing
+  const rWing       = useRef<THREE.Group>(null);
+  // entrance canopy
+  const rCanopy     = useRef<THREE.Group>(null);
+  // landscaping shrubs
+  const rShrubs     = useRef<THREE.Group>(null);
 
-  // House dims
-  const W = 5.0, D = 3.2, H = 2.4;
-  const PT = 0.18; // platform thickness
-  const RT = 0.16; // roof thickness
+  /* --- dimensions --- */
+  const W = 5.6, D = 3.0, H = 2.2;   // main block
+  const WW = 3.2, WD = 2.6, WH = 1.7; // right wing
+  const PT = 0.15;                     // platform thickness
+  const RT = 0.14;                     // roof thickness
+  const OH = 0.55;                     // roof overhang
+
+  /* --- window wall glass area: x from -1.4 to 1.4, full height --- */
+  const GW = 2.8; // glass panel width
 
   useEffect(() => {
-    // Fade in the grid
-    const gridMats = document.querySelectorAll("canvas"); // not ideal but grid is always visible
+    /* helpers */
+    const rise = (r: React.RefObject<THREE.Group | null>, at: number, dur = 0.55, ease = "power3.out") =>
+      tl.to(r.current!.scale, { y: 1, duration: dur, ease }, at);
+    const drop = (r: React.RefObject<THREE.Group | null>, fromY: number, at: number) => {
+      tl.set(r.current!, { visible: true });
+      tl.fromTo(r.current!.position, { y: fromY }, { y: 0, duration: 0.55, ease: "power3.out" }, at);
+    };
 
-    const e = "power3.out";
-    const rise = (r: React.RefObject<THREE.Group | null>, at: number, dur = 0.6) =>
-      tl.to(r.current!.scale, { y: 1, duration: dur, ease: e }, at);
+    const tl = gsap.timeline({ delay: 0.1 });
 
-    const tl = gsap.timeline({ delay: 0.2 });
+    // ① Blueprint grid appears
+    tl.call(() => setShowGrid(true), undefined, 0.0);
+    tl.call(() => setOrbitCam(true), undefined, 0.1);
 
-    // ① Platform
-    rise(rPlatform, 0.3, 0.45);
+    // ② Foundation
+    rise(rFoundation, 0.4, 0.4);
 
-    // ② Walls rise — staggered
-    rise(rWBack,  0.80);
-    rise(rWLeft,  0.92);
-    rise(rWRight, 0.97);
-    rise(rWFrL,   1.02);
-    rise(rWFrR,   1.07);
+    // ③ Main block walls rise (tight stagger)
+    rise(rWallBack,  0.9);
+    rise(rWallLeft,  1.0);
+    rise(rWallRight, 1.05);
+    rise(rWallFrL,   1.1);
+    rise(rWallFrR,   1.15);
 
-    // ③ Glass window wall glides in (scale from 0)
-    tl.to(rGlass.current!.scale,
-      { x: 1, y: 1, z: 1, duration: 0.5, ease: "back.out(1.2)" }, 1.65);
+    // ④ Side wing rises
+    rise(rWing, 1.2, 0.55);
 
-    // ④ Wood slats appear
-    rise(rSlats, 1.8, 0.5);
+    // ⑤ Glass window wall slides in
+    tl.to(rGlass.current!.scale, { x: 1, y: 1, z: 1, duration: 0.45, ease: "back.out(1.3)" }, 1.75);
 
-    // ⑤ Roof drops from above
-    tl.fromTo(rRoof.current!.position, { y: 3.5 },
-      { y: 0, duration: 0.6, ease: "power3.out" }, 2.1);
+    // ⑥ Wood panels rise
+    rise(rWood, 1.9, 0.45);
 
-    // ⑥ Interior light powers on — creates glow through glass
-    tl.to(rLight.current!, { intensity: 4.5, duration: 1.0, ease: "power2.out" }, 2.45);
+    // ⑦ Roof drops in
+    drop(rRoof, 3.2, 2.2);
 
-    // ⑦ Camera freeze + short hold, then signal done
-    tl.call(() => setCameraFree(false), undefined, 2.9);
-    tl.to({}, { duration: 0.7 }, 2.9);
-    tl.call(onDone, undefined, 3.7);
+    // ⑧ Entrance canopy drops
+    drop(rCanopy, 2.5, 2.55);
+
+    // ⑨ Landscaping pops in
+    tl.to(rShrubs.current!.scale, { x: 1, y: 1, z: 1, duration: 0.5, ease: "back.out(1.6)" }, 2.75);
+
+    // ⑩ Hold then finish
+    tl.to({}, { duration: 0.9 }, 3.2);
+    tl.call(() => setShowGrid(false), undefined, 3.5);
+    tl.call(onDone, undefined, 4.2);
 
     return () => { tl.kill(); };
   }, [onDone]);
 
-  // ─── wood slats: vertical strips on the right wall exterior ───
-  const SLATS = 8;
-  const slatSpacing = D / (SLATS + 1);
+  /* --- shared materials --- */
+  const wallMat  = <meshStandardMaterial color="#EDEAE4" roughness={0.88} />;
+  const frameMat = <meshStandardMaterial color="#18171A" roughness={0.55} metalness={0.25} />;
+  const glassMat = <meshStandardMaterial color="#B8D8F0" transparent opacity={0.22} roughness={0.04} metalness={0.15} />;
+  const concMat  = <meshStandardMaterial color="#C8C5C0" roughness={0.9} />;
+  const roofMat  = <meshStandardMaterial color="#D8D5CF" roughness={0.82} />;
+  const woodMat  = <meshStandardMaterial color="#6B4A30" roughness={0.88} />;
+  const wingMat  = <meshStandardMaterial color="#E8E5DE" roughness={0.87} />;
+
+  /* --- helper: a box whose local origin is at its bottom face --- */
+  const B = ({
+    pos, size, mat, ry = 0,
+  }: { pos: [number,number,number]; size: [number,number,number]; mat: React.ReactElement; ry?: number }) => (
+    <mesh position={pos} rotation={[0, ry, 0]} castShadow receiveShadow>
+      <boxGeometry args={size} />
+      {mat}
+    </mesh>
+  );
+
+  const SLAT_COUNT = 6;
+  const wingX = W / 2 + WW / 2 + 0.02;
 
   return (
     <>
-      <OrbitalCamera paused={!cameraFree} />
-      <GlowGrid />
-      <GoldParticles />
+      <SceneCamera orbit={orbitCam} />
+      <Lawn />
+      <Blueprint visible={showGrid} />
 
-      {/* ── Ambient — very dark to emphasize the point light drama ── */}
-      <ambientLight intensity={0.12} color="#FFF2D8" />
-
-      {/* ── Primary key light — warm sun from upper right ── */}
-      <directionalLight
-        position={[8, 10, 6]}
-        intensity={1.8}
-        color="#FFE8C0"
-        castShadow
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
-        shadow-camera-near={0.5}
-        shadow-camera-far={40}
-        shadow-camera-left={-10}
-        shadow-camera-right={10}
-        shadow-camera-top={10}
-        shadow-camera-bottom={-10}
+      {/* ── LIGHTING ── */}
+      <ambientLight intensity={0.65} color="#FFF8F0" />
+      {/* warm sun from upper-right */}
+      <directionalLight position={[8, 10, 5]} intensity={2.2} color="#FFFBF0"
+        castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048}
+        shadow-camera-near={0.5} shadow-camera-far={50}
+        shadow-camera-left={-14} shadow-camera-right={14}
+        shadow-camera-top={14} shadow-camera-bottom={-14}
       />
+      {/* cool fill from left */}
+      <directionalLight position={[-6, 5, 4]} intensity={0.5} color="#D0E8FF" />
+      {/* gentle bounce from below */}
+      <hemisphereLight args={["#C8E0FF", "#D8EACC", 0.35]} />
 
-      {/* ── Cool rim light from back ── */}
-      <directionalLight position={[-6, 6, -8]} intensity={0.5} color="#8BB0FF" />
-
-      {/* ── Interior point light — starts off, glows gold when house is complete ── */}
-      <pointLight
-        ref={rLight}
-        position={[0, 1.4, 0]}
-        intensity={0}
-        color="#C9A84C"
-        distance={8}
-        decay={2}
-        castShadow
-      />
-
-      {/* ── ① FOUNDATION PLATFORM ── */}
-      <group ref={rPlatform} position={[0, 0, 0]} scale={[1, 0, 1]}>
-        <mesh position={[0, PT / 2, 0]} receiveShadow castShadow>
-          <boxGeometry args={[W + 0.6, PT, D + 0.6]} />
-          <meshStandardMaterial color="#1C1A17" roughness={0.85} metalness={0.05} />
-        </mesh>
-        {/* Edge accent strip */}
-        <mesh position={[0, PT + 0.008, 0]}>
-          <boxGeometry args={[W + 0.62, 0.016, D + 0.62]} />
-          <meshStandardMaterial color="#C9A84C" emissive="#C9A84C" emissiveIntensity={0.3} />
-        </mesh>
+      {/* ── ① FOUNDATION ── */}
+      <group ref={rFoundation} position={[0, 0, 0]} scale={[1, 0, 1]}>
+        <B pos={[0, PT / 2, 0]}                       size={[W + 0.4, PT, D + 0.4]}    mat={concMat} />
+        <B pos={[wingX, PT / 2, -(D - WD) / 2 + 0.1]} size={[WW + 0.3, PT, WD + 0.3]} mat={concMat} />
       </group>
 
-      {/* ── ② BACK WALL ── */}
-      <group ref={rWBack} position={[0, PT, -(D / 2)]} scale={[1, 0, 1]}>
-        <mesh position={[0, H / 2, 0]} castShadow>
-          <boxGeometry args={[W, H, 0.1]} />
-          <meshStandardMaterial color="#1A1917" roughness={0.82} />
-        </mesh>
+      {/* ── ② MAIN BLOCK WALLS ── */}
+      {/* Back wall */}
+      <group ref={rWallBack} position={[0, PT, -D / 2]} scale={[1, 0, 1]}>
+        <B pos={[0, H / 2, 0]} size={[W, H, 0.1]} mat={wallMat} />
+      </group>
+      {/* Left wall */}
+      <group ref={rWallLeft} position={[-W / 2, PT, 0]} scale={[1, 0, 1]}>
+        <B pos={[0, H / 2, 0]} size={[0.1, H, D]} mat={wallMat} />
+      </group>
+      {/* Right wall (between main + wing, partial) */}
+      <group ref={rWallRight} position={[W / 2, PT, -(D - WD) / 2 - 0.1]} scale={[1, 0, 1]}>
+        <B pos={[0, H / 2, 0]} size={[0.1, H, WD + 0.2]} mat={wallMat} />
+      </group>
+      {/* Front wall — left solid strip */}
+      <group ref={rWallFrL} position={[-W / 2 + 0.65, PT, D / 2]} scale={[1, 0, 1]}>
+        <B pos={[0, H / 2, 0]} size={[1.2, H, 0.1]} mat={wallMat} />
+      </group>
+      {/* Front wall — right solid strip */}
+      <group ref={rWallFrR} position={[W / 2 - 0.5, PT, D / 2]} scale={[1, 0, 1]}>
+        <B pos={[0, H / 2, 0]} size={[0.9, H, 0.1]} mat={wallMat} />
       </group>
 
-      {/* ── ③ LEFT WALL ── */}
-      <group ref={rWLeft} position={[-(W / 2), PT, 0]} scale={[1, 0, 1]}>
-        <mesh position={[0, H / 2, 0]} castShadow>
-          <boxGeometry args={[0.1, H, D]} />
-          <meshStandardMaterial color="#1A1917" roughness={0.82} />
-        </mesh>
+      {/* ── ③ SIDE WING (lower, right) ── */}
+      <group ref={rWing} position={[wingX, PT, -(D - WD) / 2]} scale={[1, 0, 1]}>
+        {/* back */}
+        <B pos={[0, WH / 2, -WD / 2]}    size={[WW, WH, 0.1]} mat={wingMat} />
+        {/* right */}
+        <B pos={[WW / 2, WH / 2, 0]}     size={[0.1, WH, WD]} mat={wingMat} />
+        {/* front solid parts */}
+        <B pos={[-WW / 2 + 0.5, WH / 2, WD / 2]}  size={[0.9, WH, 0.1]} mat={wingMat} />
+        <B pos={[WW / 2 - 0.45, WH / 2, WD / 2]}  size={[0.8, WH, 0.1]} mat={wingMat} />
+        {/* wing glass */}
+        <B pos={[0.15, WH / 2, WD / 2 + 0.02]}    size={[1.2, WH - 0.1, 0.025]} mat={glassMat} />
+        {/* wing glass frames */}
+        <B pos={[0.15, WH / 2, WD / 2 + 0.04]}    size={[1.2, 0.04, 0.04]} mat={frameMat} />
+        <B pos={[0.15, WH - 0.05, WD / 2 + 0.04]} size={[1.2, 0.04, 0.04]} mat={frameMat} />
+        <B pos={[0.15, 0.05, WD / 2 + 0.04]}       size={[1.2, 0.04, 0.04]} mat={frameMat} />
+        {/* wing roof */}
+        <B pos={[0, WH + RT / 2, 0]}              size={[WW + 0.3, RT, WD + 0.3]} mat={roofMat} />
       </group>
 
-      {/* ── ④ RIGHT WALL (back section — wood slats on exterior) ── */}
-      <group ref={rWRight} position={[W / 2, PT, 0]} scale={[1, 0, 1]}>
-        <mesh position={[0, H / 2, 0]} castShadow>
-          <boxGeometry args={[0.1, H, D]} />
-          <meshStandardMaterial color="#1A1917" roughness={0.82} />
-        </mesh>
+      {/* ── ④ MAIN GLASS WINDOW WALL ── */}
+      <group ref={rGlass} position={[-0.15, PT, D / 2]} scale={[0, 0, 0]}>
+        {/* glass panes (3 panels) */}
+        <B pos={[-0.95, H / 2, 0.02]} size={[0.9, H - 0.1, 0.02]} mat={glassMat} />
+        <B pos={[0.05,  H / 2, 0.02]} size={[0.9, H - 0.1, 0.02]} mat={glassMat} />
+        <B pos={[1.05,  H / 2, 0.02]} size={[0.9, H - 0.1, 0.02]} mat={glassMat} />
+        {/* black metal frames — horizontal */}
+        {[0.05, H - 0.05, H / 2].map((y, i) => (
+          <B key={i} pos={[0.05, y, 0.04]} size={[GW + 0.05, 0.05, 0.05]} mat={frameMat} />
+        ))}
+        {/* black metal frames — vertical dividers */}
+        {[-0.5, 0.55, -1.4, 1.55].map((x, i) => (
+          <B key={i} pos={[x, H / 2, 0.04]} size={[0.05, H, 0.05]} mat={frameMat} />
+        ))}
+        {/* thin horizontal rail at mid-height */}
+        <B pos={[0.05, H * 0.38, 0.04]} size={[GW + 0.05, 0.03, 0.03]} mat={frameMat} />
       </group>
 
-      {/* ── ⑤ FRONT WALL — left solid section ── */}
-      <group ref={rWFrL} position={[-(W / 2) + 0.65, PT, D / 2]} scale={[1, 0, 1]}>
-        <mesh position={[0, H / 2, 0]} castShadow>
-          <boxGeometry args={[1.2, H, 0.1]} />
-          <meshStandardMaterial color="#1A1917" roughness={0.82} />
-        </mesh>
+      {/* ── ⑤ WOOD PANELS — vertical slats on left wall exterior ── */}
+      <group ref={rWood} position={[-W / 2 - 0.06, PT, 0]} scale={[1, 0, 1]}>
+        {Array.from({ length: SLAT_COUNT }).map((_, i) => {
+          const z = -D / 2 + 0.3 + i * ((D - 0.6) / (SLAT_COUNT - 1));
+          return (
+            <mesh key={i} position={[0, H / 2, z]} castShadow>
+              <boxGeometry args={[0.06, H, 0.22]} />
+              {woodMat}
+            </mesh>
+          );
+        })}
       </group>
 
-      {/* ── ⑥ FRONT WALL — right solid section ── */}
-      <group ref={rWFrR} position={[(W / 2) - 0.55, PT, D / 2]} scale={[1, 0, 1]}>
-        <mesh position={[0, H / 2, 0]} castShadow>
-          <boxGeometry args={[1.0, H, 0.1]} />
-          <meshStandardMaterial color="#1A1917" roughness={0.82} />
+      {/* ── ⑥ MAIN FLAT ROOF — drops from above ── */}
+      <group ref={rRoof} position={[0, 0, 0]}>
+        <B pos={[0, PT + H + RT / 2, 0]}
+           size={[W + OH * 2, RT, D + OH * 2]} mat={roofMat} />
+        {/* overhang soffit (underside of overhang — slightly darker) */}
+        <mesh position={[0, PT + H, D / 2 + OH / 2 + 0.01]} receiveShadow>
+          <boxGeometry args={[W + OH * 2, 0.01, OH]} />
+          <meshStandardMaterial color="#C0BDB8" roughness={0.9} />
         </mesh>
+        {/* thin black drip edge */}
+        <B pos={[0, PT + H + RT + 0.03, D / 2 + OH / 2]}
+           size={[W + OH * 2, 0.06, 0.06]} mat={frameMat} />
       </group>
 
-      {/* ── ⑦ GLASS WINDOW WALL — glows gold when interior light powers on ── */}
-      <group
-        ref={rGlass}
-        position={[0.1, PT, D / 2]}
-        scale={[0, 0, 0]}
-      >
-        {/* Outer frame */}
-        <mesh position={[0, H / 2, 0]}>
-          <boxGeometry args={[2.6, H, 0.08]} />
-          <meshStandardMaterial color="#2A2825" roughness={0.6} metalness={0.1} />
-        </mesh>
-        {/* Glass — transparent with warm emissive glow */}
-        <mesh position={[0, H / 2, 0.05]}>
-          <boxGeometry args={[2.48, H - 0.1, 0.02]} />
-          <meshStandardMaterial
-            color="#C9A84C"
-            emissive="#C9A84C"
-            emissiveIntensity={0.06}
-            transparent
-            opacity={0.18}
-            roughness={0.05}
-            metalness={0.3}
-          />
-        </mesh>
-        {/* Thin cross dividers */}
-        <mesh position={[0, H / 2, 0.06]}>
-          <boxGeometry args={[2.48, 0.04, 0.025]} />
-          <meshStandardMaterial color="#3A3835" metalness={0.3} roughness={0.4} />
-        </mesh>
-        <mesh position={[0.4, H / 2, 0.06]}>
-          <boxGeometry args={[0.04, H - 0.1, 0.025]} />
-          <meshStandardMaterial color="#3A3835" metalness={0.3} roughness={0.4} />
-        </mesh>
-        <mesh position={[-0.85, H / 2, 0.06]}>
-          <boxGeometry args={[0.04, H - 0.1, 0.025]} />
-          <meshStandardMaterial color="#3A3835" metalness={0.3} roughness={0.4} />
-        </mesh>
+      {/* ── ⑦ ENTRANCE CANOPY — thin slab over front door area ── */}
+      <group ref={rCanopy} position={[0, 0, 0]}>
+        <B pos={[-0.15, PT + H * 0.7, D / 2 + 0.65]}
+           size={[1.6, 0.06, 1.3]} mat={roofMat} />
+        {/* canopy support column */}
+        <B pos={[-0.15, PT + H * 0.35, D / 2 + 1.2]}
+           size={[0.08, H * 0.7, 0.08]} mat={frameMat} />
       </group>
 
-      {/* ── ⑧ WOOD SLATS — vertical strips on right exterior wall ── */}
-      <group ref={rSlats} position={[W / 2 + 0.06, PT, 0]} scale={[1, 0, 1]}>
-        {Array.from({ length: SLATS }).map((_, i) => (
-          <mesh
-            key={i}
-            position={[0, H / 2, -D / 2 + slatSpacing * (i + 1)]}
-            castShadow
-          >
-            <boxGeometry args={[0.06, H, 0.18]} />
-            <meshStandardMaterial color="#3D2A1A" roughness={0.92} />
+      {/* ── ⑧ LANDSCAPING — simple shrubs ── */}
+      <group ref={rShrubs} scale={[0, 0, 0]}>
+        {/* hedge along left wall */}
+        {[-1.5, -0.5, 0.5, 1.5].map((z, i) => (
+          <mesh key={i} position={[-W / 2 - 0.5, 0.25, z]} castShadow>
+            <boxGeometry args={[0.6, 0.5, 0.5]} />
+            <meshStandardMaterial color="#5A7A40" roughness={0.95} />
           </mesh>
         ))}
-      </group>
-
-      {/* ── ⑨ FLAT ROOF — drops in from above ── */}
-      <group ref={rRoof} position={[0, 0, 0]}>
-        {/* Main dark slab */}
-        <mesh position={[0, PT + H + RT / 2, 0]} castShadow receiveShadow>
-          <boxGeometry args={[W + 0.6, RT, D + 0.6]} />
-          <meshStandardMaterial color="#0E0D0B" roughness={0.55} metalness={0.1} />
+        {/* low shrub front-right */}
+        <mesh position={[W / 2 + WW / 2 + 0.8, 0.18, D / 2 + 0.9]} castShadow>
+          <sphereGeometry args={[0.4, 8, 6]} />
+          <meshStandardMaterial color="#6A8A4A" roughness={0.95} />
         </mesh>
-        {/* Gold accent edge line under roof (front) */}
-        <mesh position={[0, PT + H, D / 2 + 0.32]}>
-          <boxGeometry args={[W + 0.6, 0.02, 0.02]} />
-          <meshStandardMaterial color="#C9A84C" emissive="#C9A84C" emissiveIntensity={0.6} />
+        <mesh position={[W / 2 + WW / 2 + 1.5, 0.22, D / 2 + 0.5]} castShadow>
+          <sphereGeometry args={[0.5, 8, 6]} />
+          <meshStandardMaterial color="#58784A" roughness={0.95} />
         </mesh>
-        {/* Roof top minimal parapet */}
-        <mesh position={[0, PT + H + RT + 0.05, D / 2 + 0.28]}>
-          <boxGeometry args={[W + 0.6, 0.1, 0.06]} />
-          <meshStandardMaterial color="#161513" metalness={0.15} roughness={0.5} />
-        </mesh>
+        {/* tree left */}
+        <group position={[-W / 2 - 2.2, 0, -0.5]}>
+          <mesh position={[0, 0.5, 0]}>
+            <cylinderGeometry args={[0.12, 0.16, 1.0, 8]} />
+            <meshStandardMaterial color="#4A3020" roughness={0.95} />
+          </mesh>
+          <mesh position={[0, 1.6, 0]}>
+            <sphereGeometry args={[0.85, 10, 8]} />
+            <meshStandardMaterial color="#4A7030" roughness={0.95} />
+          </mesh>
+        </group>
       </group>
     </>
   );
 }
 
-/* ─────────────────────────────────────────────────────────────
-   PRELOADER WRAPPER — full-screen overlay with 3D scene
-   ───────────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────
+   PRELOADER WRAPPER
+   ───────────────────────────────────────────── */
 export default function Preloader({ onDone }: { onDone: () => void }) {
   const [exiting, setExiting] = useState(false);
 
@@ -354,63 +361,52 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
           transition={{ duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
           style={{
             position: "fixed", inset: 0, zIndex: 9999,
-            background: "#080706",
+            background: "#F0EDE8",
             display: "flex", flexDirection: "column",
             alignItems: "center", justifyContent: "center",
           }}
         >
-          {/* ── 3D Canvas ── */}
-          <div style={{ width: "100vw", height: "100vh", position: "absolute", inset: 0 }}>
+          {/* full-screen 3D canvas */}
+          <div style={{ position: "absolute", inset: 0 }}>
             <Canvas
               shadows
               frameloop="always"
               gl={{ antialias: true, alpha: false }}
-              style={{ width: "100%", height: "100%", background: "#080706" }}
+              style={{ width: "100%", height: "100%", background: "#F0EDE8" }}
             >
-              <fog attach="fog" args={["#080706", 14, 28]} />
-              <color attach="background" args={["#080706"]} />
+              <color attach="background" args={["#F0EDE8"]} />
               <Suspense fallback={null}>
                 <HouseScene onDone={handleDone} />
               </Suspense>
             </Canvas>
           </div>
 
-          {/* ── Vignette overlay ── */}
+          {/* subtle vignette */}
           <div style={{
             position: "absolute", inset: 0, pointerEvents: "none",
-            background: "radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(0,0,0,0.7) 100%)",
+            background: "radial-gradient(ellipse 85% 85% at 50% 50%, transparent 45%, rgba(0,0,0,0.18) 100%)",
           }} />
 
-          {/* ── Brand identity — bottom center ── */}
+          {/* brand name — bottom center */}
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 1.0 }}
-            style={{
-              position: "absolute", bottom: "7vh",
-              textAlign: "center", zIndex: 10,
-            }}
+            transition={{ delay: 0.7, duration: 0.9 }}
+            style={{ position: "absolute", bottom: "6vh", textAlign: "center", zIndex: 10 }}
           >
             <div style={{
-              fontSize: "clamp(18px, 2.5vw, 26px)",
-              fontWeight: 800,
-              letterSpacing: "0.12em",
+              fontSize: "clamp(17px, 2.2vw, 24px)", fontWeight: 800, letterSpacing: "0.12em",
               background: "linear-gradient(135deg, #9A7A2E, #C9A84C, #E8C97A)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              marginBottom: "10px",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
+              marginBottom: "9px",
             }}>
               חידוש מבנים
             </div>
             <div style={{
-              width: "140px", height: "1px", margin: "0 auto 10px",
-              background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.5), transparent)",
+              width: "130px", height: "1px", margin: "0 auto 9px",
+              background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.55), transparent)",
             }} />
-            <div style={{
-              fontSize: "10px", letterSpacing: "5px", color: "#6B6762",
-              textTransform: "uppercase",
-            }}>
+            <div style={{ fontSize: "10px", letterSpacing: "5px", color: "#8A8480", textTransform: "uppercase" }}>
               בנייה פרימיום
             </div>
           </motion.div>
