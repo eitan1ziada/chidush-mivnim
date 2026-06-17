@@ -104,11 +104,11 @@ export default function Hero() {
             <source src="/house-animation.mp4" type="video/mp4" />
           </video>
 
-          {/* Dark overlay — lightens as you scroll (house becomes clearer) */}
+          {/* Dark overlay */}
           <div
             style={{
               position: "absolute", inset: 0, pointerEvents: "none",
-              background: "linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.2) 100%)",
+              background: "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 60%, rgba(0,0,0,0.55) 100%)",
             }}
           />
 
@@ -140,7 +140,7 @@ export default function Hero() {
             <motion.p
               initial={{ opacity: 0, letterSpacing: "0.3em" }}
               animate={{ opacity: 1, letterSpacing: "0.5em" }}
-              transition={{ duration: 2, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 1, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
               style={{ fontSize: "12px", fontWeight: 500, textTransform: "uppercase",
                 marginBottom: "32px", letterSpacing: "0.5em", color: "#C9A84C" }}
             >
@@ -148,9 +148,9 @@ export default function Hero() {
             </motion.p>
 
             <motion.h1
-              initial={{ opacity: 0, y: 60, filter: "blur(20px)" }}
+              initial={{ opacity: 0, y: 40, filter: "blur(10px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              transition={{ duration: 1.4, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
               style={{
                 fontWeight: 800, lineHeight: 0.92, marginBottom: "32px",
                 fontSize: "clamp(3.5rem, 10vw, 9rem)", letterSpacing: "-0.02em",
@@ -196,9 +196,8 @@ export default function Hero() {
               <button
                 onClick={() => document.querySelector("#portfolio")?.scrollIntoView({ behavior: "smooth" })}
                 style={{ color: "#F5F3EF", fontSize: "13px", fontWeight: 600, letterSpacing: "0.15em",
-                  textTransform: "uppercase", borderBottom: "1px solid rgba(245,243,239,0.3)",
-                  paddingBottom: "4px", background: "none", border: "none", cursor: "pointer",
-                  borderBottom: "1px solid rgba(245,243,239,0.3)" as any }}
+                  textTransform: "uppercase", paddingBottom: "4px", background: "none",
+                  border: "none", borderBottom: "1px solid rgba(245,243,239,0.3)", cursor: "pointer" }}
               >
                 הצג פרויקטים
               </button>
