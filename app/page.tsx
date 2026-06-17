@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Preloader from "@/app/components/layout/Preloader";
 import Cursor from "@/app/components/layout/Cursor";
 import ScrollProgress from "@/app/components/layout/ScrollProgress";
@@ -17,39 +17,7 @@ import Footer from "@/app/components/layout/Footer";
 
 export default function Home() {
   const [loaded, setLoaded] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Ping-pong: plays forward normally, then reverses at same speed, loops
-  useEffect(() => {
-    if (!loaded) return;
-    const video = videoRef.current;
-    if (!video) return;
-    let rafId: number;
-    let reversing = false;
-
-    const reverseStep = () => {
-      video.currentTime = Math.max(0, video.currentTime - 1 / 60);
-      if (video.currentTime <= 0) {
-        reversing = false;
-        video.play();
-      } else {
-        rafId = requestAnimationFrame(reverseStep);
-      }
-    };
-
-    const onEnded = () => {
-      reversing = true;
-      rafId = requestAnimationFrame(reverseStep);
-    };
-
-    video.addEventListener("ended", onEnded);
-    video.play();
-
-    return () => {
-      video.removeEventListener("ended", onEnded);
-      cancelAnimationFrame(rafId);
-    };
-  }, [loaded]);
 
   useEffect(() => {
     if (!loaded) return;
@@ -70,12 +38,11 @@ export default function Home() {
       <Preloader onDone={() => setLoaded(true)} />
       {loaded && (
         <>
-          {/* Persistent video background — ping-pong loop */}
           <video
-            ref={videoRef}
+            autoPlay
             muted
+            loop
             playsInline
-            preload="auto"
             style={{
               position: "fixed", inset: 0, width: "100%", height: "100%",
               objectFit: "cover", zIndex: -1, opacity: 0.25,
