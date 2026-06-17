@@ -29,9 +29,7 @@ export default function Home() {
     let rafId: number;
 
     const tick = (ts: number) => {
-      if (!video.duration) { rafId = requestAnimationFrame(tick); return; }
       if (lastTs === null) { lastTs = ts; rafId = requestAnimationFrame(tick); return; }
-
       const dt = (ts - lastTs) / 1000;
       lastTs = ts;
 
@@ -46,8 +44,18 @@ export default function Home() {
       rafId = requestAnimationFrame(tick);
     };
 
-    video.pause();
-    rafId = requestAnimationFrame(tick);
+    const start = () => {
+      video.pause();
+      rafId = requestAnimationFrame(tick);
+    };
+
+    if (video.readyState >= 2) {
+      start();
+    } else {
+      video.addEventListener("canplay", start, { once: true });
+      video.load();
+    }
+
     return () => cancelAnimationFrame(rafId);
   }, [loaded]);
 
