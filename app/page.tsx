@@ -43,6 +43,7 @@ export default function Home() {
             muted
             loop
             playsInline
+            onCanPlay={(e) => { (e.target as HTMLVideoElement).playbackRate = 0.4; }}
             style={{
               position: "fixed", inset: 0, width: "100%", height: "100%",
               objectFit: "cover", zIndex: -1, opacity: 0.25,
