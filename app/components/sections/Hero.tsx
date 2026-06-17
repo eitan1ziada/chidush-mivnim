@@ -195,8 +195,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 1.4, ease: [0.22, 1, 0.36, 1] }}
-          className="text-base md:text-lg max-w-xl mx-auto mb-12 leading-relaxed font-light"
-          style={{ color: "#6B6762" }}
+          style={{ color: "#6B6762", maxWidth: "560px", marginLeft: "auto", marginRight: "auto", marginBottom: "48px", lineHeight: 1.8, fontSize: "17px", fontWeight: 300 }}
         >
           פרויקטי שיפוץ ובנייה פרימיום · מהתכנון ועד המסירה · 15 שנות ניסיון
         </motion.p>
