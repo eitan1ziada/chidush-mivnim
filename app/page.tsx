@@ -37,6 +37,19 @@ export default function Home() {
       <Preloader onDone={() => setLoaded(true)} />
       {loaded && (
         <>
+          {/* Persistent video background behind all sections */}
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            style={{
+              position: "fixed", inset: 0, width: "100%", height: "100%",
+              objectFit: "cover", zIndex: -1, opacity: 0.25,
+            }}
+          >
+            <source src="/house-animation.mp4" type="video/mp4" />
+          </video>
           <ScrollProgress />
           <Navbar />
           <main>
