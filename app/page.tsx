@@ -24,40 +24,31 @@ export default function Home() {
     const video = videoRef.current;
     if (!video) return;
 
-    let reversing = false;
+    let forward = true;
+    let lastTs: number | null = null;
     let rafId: number;
-    let lastTime: number | null = null;
 
-    const reverseStep = (timestamp: number) => {
-      if (lastTime === null) lastTime = timestamp;
-      const dt = (timestamp - lastTime) / 1000;
-      lastTime = timestamp;
-      video.currentTime = Math.max(0, video.currentTime - dt);
-      if (video.currentTime <= 0) {
-        reversing = false;
-        lastTime = null;
-        video.play();
+    const tick = (ts: number) => {
+      if (!video.duration) { rafId = requestAnimationFrame(tick); return; }
+      if (lastTs === null) { lastTs = ts; rafId = requestAnimationFrame(tick); return; }
+
+      const dt = (ts - lastTs) / 1000;
+      lastTs = ts;
+
+      if (forward) {
+        video.currentTime = Math.min(video.duration, video.currentTime + dt);
+        if (video.currentTime >= video.duration) forward = false;
       } else {
-        rafId = requestAnimationFrame(reverseStep);
+        video.currentTime = Math.max(0, video.currentTime - dt);
+        if (video.currentTime <= 0) forward = true;
       }
+
+      rafId = requestAnimationFrame(tick);
     };
 
-    const onTimeUpdate = () => {
-      if (!reversing && video.duration && video.currentTime >= video.duration - 0.1) {
-        reversing = true;
-        video.pause();
-        lastTime = null;
-        rafId = requestAnimationFrame(reverseStep);
-      }
-    };
-
-    video.addEventListener("timeupdate", onTimeUpdate);
-    video.play();
-
-    return () => {
-      video.removeEventListener("timeupdate", onTimeUpdate);
-      cancelAnimationFrame(rafId);
-    };
+    video.pause();
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
   }, [loaded]);
 
 
