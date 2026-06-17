@@ -24,31 +24,38 @@ export default function Home() {
     const video = videoRef.current;
     if (!video) return;
 
+    let reversing = false;
     let rafId: number;
     let lastTime: number | null = null;
 
-    const reversePlay = (timestamp: number) => {
+    const reverseStep = (timestamp: number) => {
       if (lastTime === null) lastTime = timestamp;
       const dt = (timestamp - lastTime) / 1000;
       lastTime = timestamp;
       video.currentTime = Math.max(0, video.currentTime - dt);
       if (video.currentTime <= 0) {
+        reversing = false;
         lastTime = null;
         video.play();
       } else {
-        rafId = requestAnimationFrame(reversePlay);
+        rafId = requestAnimationFrame(reverseStep);
       }
     };
 
-    const onEnded = () => {
-      lastTime = null;
-      rafId = requestAnimationFrame(reversePlay);
+    const onTimeUpdate = () => {
+      if (!reversing && video.duration && video.currentTime >= video.duration - 0.1) {
+        reversing = true;
+        video.pause();
+        lastTime = null;
+        rafId = requestAnimationFrame(reverseStep);
+      }
     };
 
-    video.addEventListener("ended", onEnded);
+    video.addEventListener("timeupdate", onTimeUpdate);
     video.play();
+
     return () => {
-      video.removeEventListener("ended", onEnded);
+      video.removeEventListener("timeupdate", onTimeUpdate);
       cancelAnimationFrame(rafId);
     };
   }, [loaded]);
