@@ -28,9 +28,8 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-body, section, main, footer, header { text-align: center; }
-p, h1, h2, h3, h4, h5, h6, span, li, a, div { text-align: center; }
-input, textarea, select { text-align: right; }
+* { text-align: center !important; }
+input, textarea, select { text-align: right !important; }
 
 html { scroll-behavior: auto; }
 

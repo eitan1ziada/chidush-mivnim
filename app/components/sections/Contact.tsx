@@ -34,202 +34,150 @@ export default function Contact() {
     setTimeout(() => setSent(false), 5000);
   };
 
-  const inputCls = "w-full px-5 py-3.5 rounded text-right outline-none transition-all duration-300 text-sm placeholder:text-[#3A3835] focus:border-[#C9A84C]/50";
   const inputStyle = {
+    width: "100%",
+    padding: "14px 18px",
+    borderRadius: "4px",
     background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.06)",
+    border: "1px solid rgba(255,255,255,0.08)",
     color: "#F5F3EF",
+    fontSize: "15px",
+    outline: "none",
+    textAlign: "right" as const,
   };
 
   return (
     <section id="contact" ref={ref} className="section-pad relative overflow-hidden">
-      <div
-        className="absolute -left-40 bottom-0 w-80 h-80 rounded-sm blur-3xl opacity-10 pointer-events-none"
-        style={{ background: "#C9A84C" }}
-      />
-
-      <div className="max-w-7xl mx-auto px-6">
+      <div style={{ maxWidth: "700px", margin: "0 auto", padding: "0 24px", textAlign: "center" }}>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          className="text-center mb-14"
+          style={{ marginBottom: "56px" }}
         >
-          <p className="text-sm font-semibold tracking-widest mb-4 uppercase" style={{ color: "#C9A84C" }}>
+          <p style={{ color: "#C9A84C", fontSize: "13px", letterSpacing: "4px", textTransform: "uppercase", marginBottom: "16px" }}>
             דברו איתנו
           </p>
-          <h2
-            className="text-5xl md:text-6xl font-bold"
-            style={{ fontFamily: "var(--font-manrope)", color: "#F5F3EF" }}
-          >
+          <h2 style={{ fontSize: "clamp(36px, 5vw, 64px)", fontWeight: 800, color: "#F5F3EF", marginBottom: "16px" }}>
             בואו נתחיל לעבוד
           </h2>
+          <p style={{ color: "#B8B4AE", fontSize: "17px", lineHeight: 1.8 }}>
+            מוכנים להפוך את החלום למציאות? צרו קשר ואנו נחזור אליכם תוך 24 שעות.
+          </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-12 lg:gap-20">
-          {/* Info */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.1 }}
-          >
-            <p className="text-lg mb-8 leading-relaxed" style={{ color: "#B8B4AE" }}>
-              מוכנים להפוך את החלום למציאות? צרו קשר ואנו נחזור אליכם תוך 24 שעות עם הצעה מקצועית.
-            </p>
+        {/* Contact info row */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.7, delay: 0.15 }}
+          style={{ display: "flex", justifyContent: "center", gap: "32px", marginBottom: "48px", flexWrap: "wrap" }}
+        >
+          {[
+            { icon: Phone, label: COMPANY.phone, href: `tel:${COMPANY.phone}` },
+            { icon: Mail, label: COMPANY.email, href: `mailto:${COMPANY.email}` },
+            { icon: MapPin, label: COMPANY.address, href: "#" },
+          ].map(({ icon: Icon, label, href }) => (
+            <a key={label} href={href} style={{ display: "flex", alignItems: "center", gap: "10px", color: "#B8B4AE", textDecoration: "none", fontSize: "14px" }}>
+              <div style={{ width: "36px", height: "36px", borderRadius: "4px", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(201,168,76,0.1)", flexShrink: 0 }}>
+                <Icon size={16} color="#C9A84C" />
+              </div>
+              {label}
+            </a>
+          ))}
+        </motion.div>
 
-            <div className="flex flex-col gap-5">
-              {[
-                { icon: Phone, label: COMPANY.phone, href: `tel:${COMPANY.phone}` },
-                { icon: Mail, label: COMPANY.email, href: `mailto:${COMPANY.email}` },
-                { icon: MapPin, label: COMPANY.address, href: "#" },
-              ].map(({ icon: Icon, label, href }) => (
-                <a
-                  key={label}
-                  href={href}
-                  className="flex items-center gap-4 group"
-                >
-                  <div
-                    className="w-11 h-11 rounded flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110"
-                    style={{ background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.15)" }}
-                  >
-                    <Icon size={18} color="#C9A84C" />
+        {/* Form */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          <AnimatePresence mode="wait">
+            {sent ? (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                style={{ padding: "60px 40px", background: "rgba(201,168,76,0.04)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: "4px", textAlign: "center" }}
+              >
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", duration: 0.6 }} style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
+                  <CheckCircle size={64} color="#C9A84C" />
+                </motion.div>
+                <h3 style={{ fontSize: "24px", fontWeight: 700, color: "#F5F3EF", marginBottom: "8px" }}>ההודעה נשלחה!</h3>
+                <p style={{ color: "#B8B4AE" }}>ניצור איתכם קשר תוך 24 שעות.</p>
+              </motion.div>
+            ) : (
+              <motion.form key="form" onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+                  <div>
+                    <input {...register("name")} placeholder="שם מלא *" style={inputStyle} />
+                    {errors.name && <p style={{ color: "#E87A7A", fontSize: "12px", marginTop: "4px" }}>{errors.name.message}</p>}
                   </div>
-                  <span className="transition-colors duration-200 group-hover:text-[#C9A84C]" style={{ color: "#B8B4AE" }}>
-                    {label}
-                  </span>
-                </a>
-              ))}
-            </div>
-
-            {/* Social */}
-            <div className="flex gap-3 mt-8">
-              {[
-                { label: "WhatsApp", href: `https://wa.me/${COMPANY.whatsapp}`, icon: MessageCircle },
-                { label: "Instagram", href: COMPANY.instagram, icon: null },
-                { label: "LinkedIn", href: COMPANY.linkedin, icon: null },
-              ].map(({ label, href, icon: Icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 rounded-sm text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:scale-105"
+                  <div>
+                    <input {...register("phone")} placeholder="טלפון *" style={inputStyle} />
+                    {errors.phone && <p style={{ color: "#E87A7A", fontSize: "12px", marginTop: "4px" }}>{errors.phone.message}</p>}
+                  </div>
+                </div>
+                <div>
+                  <input {...register("email")} placeholder="כתובת מייל *" style={inputStyle} />
+                  {errors.email && <p style={{ color: "#E87A7A", fontSize: "12px", marginTop: "4px" }}>{errors.email.message}</p>}
+                </div>
+                <div>
+                  <input {...register("subject")} placeholder="נושא הפנייה *" style={inputStyle} />
+                  {errors.subject && <p style={{ color: "#E87A7A", fontSize: "12px", marginTop: "4px" }}>{errors.subject.message}</p>}
+                </div>
+                <div>
+                  <textarea {...register("message")} placeholder="ספרו לנו על הפרויקט שלכם *" rows={5} style={{ ...inputStyle, resize: "none" }} />
+                  {errors.message && <p style={{ color: "#E87A7A", fontSize: "12px", marginTop: "4px" }}>{errors.message.message}</p>}
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
                   style={{
-                    background: "rgba(201,168,76,0.07)",
-                    border: "1px solid rgba(201,168,76,0.15)",
-                    color: "#C9A84C",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
+                    padding: "16px", borderRadius: "4px", fontWeight: 700, fontSize: "16px",
+                    background: "linear-gradient(135deg, #9A7A2E, #C9A84C)", color: "#080807",
+                    border: "none", cursor: "pointer", opacity: isSubmitting ? 0.6 : 1,
                   }}
                 >
-                  {Icon && <Icon size={14} />}
-                  {label}
-                </a>
-              ))}
-            </div>
-          </motion.div>
+                  {isSubmitting ? (
+                    <div style={{ width: "20px", height: "20px", border: "2px solid rgba(8,8,7,0.3)", borderTopColor: "#080807", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+                  ) : (
+                    <><Send size={18} />שלחו הודעה</>
+                  )}
+                </button>
 
-          {/* Form */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            <AnimatePresence mode="wait">
-              {sent ? (
-                <motion.div
-                  key="success"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="h-full flex flex-col items-center justify-center gap-5 py-16 rounded text-center"
-                  style={{ background: "rgba(201,168,76,0.04)", border: "1px solid rgba(201,168,76,0.2)" }}
-                >
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", duration: 0.6 }}
-                  >
-                    <CheckCircle size={64} color="#C9A84C" />
-                  </motion.div>
-                  <h3 className="text-2xl font-bold" style={{ fontFamily: "var(--font-manrope)", color: "#F5F3EF" }}>
-                    ההודעה נשלחה!
-                  </h3>
-                  <p style={{ color: "#B8B4AE" }}>ניצור איתכם קשר תוך 24 שעות.</p>
-                </motion.div>
-              ) : (
-                <motion.form
-                  key="form"
-                  onSubmit={handleSubmit(onSubmit)}
-                  className="flex flex-col gap-4"
-                >
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <input
-                        {...register("name")}
-                        placeholder="שם מלא *"
-                        className={inputCls}
-                        style={inputStyle}
-                      />
-                      {errors.name && <p className="text-xs mt-1 pr-1" style={{ color: "#E87A7A" }}>{errors.name.message}</p>}
-                    </div>
-                    <div>
-                      <input
-                        {...register("phone")}
-                        placeholder="טלפון *"
-                        className={inputCls}
-                        style={inputStyle}
-                      />
-                      {errors.phone && <p className="text-xs mt-1 pr-1" style={{ color: "#E87A7A" }}>{errors.phone.message}</p>}
-                    </div>
-                  </div>
-                  <div>
-                    <input
-                      {...register("email")}
-                      placeholder="כתובת מייל *"
-                      className={inputCls}
-                      style={inputStyle}
-                    />
-                    {errors.email && <p className="text-xs mt-1 pr-1" style={{ color: "#E87A7A" }}>{errors.email.message}</p>}
-                  </div>
-                  <div>
-                    <input
-                      {...register("subject")}
-                      placeholder="נושא הפנייה *"
-                      className={inputCls}
-                      style={inputStyle}
-                    />
-                    {errors.subject && <p className="text-xs mt-1 pr-1" style={{ color: "#E87A7A" }}>{errors.subject.message}</p>}
-                  </div>
-                  <div>
-                    <textarea
-                      {...register("message")}
-                      placeholder="ספרו לנו על הפרויקט שלכם *"
-                      rows={5}
-                      className={inputCls + " resize-none"}
-                      style={inputStyle}
-                    />
-                    {errors.message && <p className="text-xs mt-1 pr-1" style={{ color: "#E87A7A" }}>{errors.message.message}</p>}
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex items-center justify-center gap-2 py-4 rounded font-semibold transition-all duration-300 hover:scale-[1.02] hover:opacity-90 disabled:opacity-50"
-                    style={{ background: "linear-gradient(135deg, #9A7A2E, #C9A84C)", color: "#080807" }}
-                  >
-                    {isSubmitting ? (
-                      <div className="w-5 h-5 border-2 border-[#080807]/30 border-t-[#080807] rounded-sm animate-spin" />
-                    ) : (
-                      <>
-                        <Send size={18} />
-                        שלחו הודעה
-                      </>
-                    )}
-                  </button>
-                </motion.form>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        </div>
+                {/* Social links */}
+                <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginTop: "8px" }}>
+                  {[
+                    { label: "WhatsApp", href: `https://wa.me/${COMPANY.whatsapp}`, icon: MessageCircle },
+                  ].map(({ label, href, icon: Icon }) => (
+                    <a
+                      key={label}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: "flex", alignItems: "center", gap: "8px",
+                        padding: "10px 20px", borderRadius: "4px", fontSize: "14px",
+                        background: "rgba(201,168,76,0.07)", border: "1px solid rgba(201,168,76,0.15)",
+                        color: "#C9A84C", textDecoration: "none",
+                      }}
+                    >
+                      <Icon size={14} />
+                      {label}
+                    </a>
+                  ))}
+                </div>
+              </motion.form>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </section>
   );
 }
