@@ -3,24 +3,37 @@ import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 
 export default function Hero() {
+  const videoRef = useRef<HTMLVideoElement>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
-  const bgRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Scroll-driven parallax
+  // Scrub video by scroll
   useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.pause();
+
     const onScroll = () => {
-      const scrollY = window.scrollY;
-      if (bgRef.current) {
-        bgRef.current.style.transform = `scale(${1 + scrollY * 0.0004}) translateY(${scrollY * 0.25}px)`;
-        bgRef.current.style.opacity = String(Math.max(0, 1 - scrollY * 0.002));
-      }
+      if (!sectionRef.current || !video.duration) return;
+
+      const rect = sectionRef.current.getBoundingClientRect();
+      const sectionH = sectionRef.current.offsetHeight - window.innerHeight;
+      const scrolled = Math.max(0, -rect.top);
+      const progress = Math.min(1, scrolled / sectionH);
+
+      // Scrub video
+      video.currentTime = progress * video.duration;
+
+      // Fade out text as we scroll
       if (textRef.current) {
-        textRef.current.style.transform = `translateY(${scrollY * 0.15}px)`;
-        textRef.current.style.opacity = String(Math.max(0, 1 - scrollY * 0.003));
+        const fadeOut = Math.max(0, 1 - progress * 3);
+        textRef.current.style.opacity = String(fadeOut);
+        textRef.current.style.transform = `translateY(${progress * -60}px)`;
       }
     };
+
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -67,219 +80,185 @@ export default function Hero() {
   }, []);
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative min-h-screen flex items-center justify-center overflow-hidden"
-      style={{ background: "#080807" }}
-    >
-      {/* Cinematic background layers */}
-      <div
-        ref={bgRef}
-        className="absolute inset-0"
-        style={{ transformOrigin: "center center", willChange: "transform, opacity" }}
-      >
-        {/* Deep gradient */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(ellipse 90% 70% at 50% 30%, #1A1410 0%, #0A0807 60%, #050403 100%)",
-          }}
-        />
-        {/* Warm light source */}
-        <div
-          className="absolute"
-          style={{
-            top: "10%",
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: "60vw",
-            height: "50vh",
-            background:
-              "radial-gradient(ellipse 100% 100% at 50% 50%, rgba(201,168,76,0.12) 0%, rgba(180,120,40,0.06) 40%, transparent 70%)",
-            filter: "blur(40px)",
-          }}
-        />
-        {/* Grid texture */}
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(201,168,76,1) 1px, transparent 1px), linear-gradient(90deg, rgba(201,168,76,1) 1px, transparent 1px)",
-            backgroundSize: "80px 80px",
-          }}
-        />
-        {/* Vignette */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(ellipse 100% 100% at 50% 50%, transparent 40%, rgba(0,0,0,0.6) 100%)",
-          }}
-        />
-      </div>
+    <>
+      {/* Scroll container — 300vh gives room to scrub the full video */}
+      <section ref={sectionRef} style={{ height: "300vh", position: "relative" }}>
 
-      {/* Canvas particles */}
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 pointer-events-none"
-        style={{ opacity: 0.6 }}
-      />
+        {/* Sticky viewport — stays fixed while scrolling through 300vh */}
+        <div style={{ position: "sticky", top: 0, height: "100vh", overflow: "hidden" }}>
 
-      {/* Bottom fade */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-64 pointer-events-none z-10"
-        style={{ background: "linear-gradient(to bottom, transparent, #080807)" }}
-      />
-
-      {/* MAIN CONTENT */}
-      <div
-        ref={textRef}
-        className="relative z-10 text-center px-6"
-        style={{ willChange: "transform, opacity" }}
-      >
-        {/* Sub label */}
-        <motion.p
-          initial={{ opacity: 0, letterSpacing: "0.3em" }}
-          animate={{ opacity: 1, letterSpacing: "0.5em" }}
-          transition={{ duration: 2, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="text-xs font-medium uppercase mb-8 tracking-[0.5em]"
-          style={{ color: "#C9A84C" }}
-        >
-          חידוש מבנים · בנייה פרימיום
-        </motion.p>
-
-        {/* MAIN HEADLINE */}
-        <motion.h1
-          initial={{ opacity: 0, y: 60, filter: "blur(20px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ duration: 1.4, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="font-bold leading-none mb-8"
-          style={{
-            fontFamily: "var(--font-manrope)",
-            fontSize: "clamp(3.5rem, 10vw, 9rem)",
-            letterSpacing: "-0.02em",
-            lineHeight: 0.92,
-          }}
-        >
-          <span style={{ color: "#F5F3EF", display: "block" }}>בנייה שמשאירה</span>
-          <span
+          {/* Video — scrubbed by scroll, stays as background */}
+          <video
+            ref={videoRef}
+            muted
+            playsInline
+            preload="auto"
             style={{
-              display: "block",
-              background: "linear-gradient(135deg, #9A7A2E 0%, #C9A84C 45%, #E8C97A 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
             }}
           >
-            רושם לנצח
-          </span>
-        </motion.h1>
+            <source src="/house-animation.mp4" type="video/mp4" />
+          </video>
 
-        {/* Divider line */}
-        <motion.div
-          initial={{ scaleX: 0 }}
-          animate={{ scaleX: 1 }}
-          transition={{ duration: 1.2, delay: 1.2, ease: [0.22, 1, 0.36, 1] }}
-          className="mx-auto mb-8"
-          style={{
-            height: "1px",
-            width: "120px",
-            background: "linear-gradient(90deg, transparent, #C9A84C, transparent)",
-            transformOrigin: "center",
-          }}
-        />
-
-        {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 1.4, ease: [0.22, 1, 0.36, 1] }}
-          style={{ color: "#6B6762", maxWidth: "560px", marginLeft: "auto", marginRight: "auto", marginBottom: "48px", lineHeight: 1.8, fontSize: "17px", fontWeight: 300 }}
-        >
-          פרויקטי שיפוץ ובנייה פרימיום · מהתכנון ועד המסירה · 15 שנות ניסיון
-        </motion.p>
-
-        {/* CTAs */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 1.6, ease: [0.22, 1, 0.36, 1] }}
-          className="flex items-center justify-center gap-6 flex-wrap"
-        >
-          <button
-            onClick={() => document.querySelector("#portfolio")?.scrollIntoView({ behavior: "smooth" })}
-            className="text-sm font-semibold tracking-widest uppercase transition-all duration-300 hover:opacity-70"
+          {/* Dark overlay — lightens as you scroll (house becomes clearer) */}
+          <div
             style={{
-              color: "#F5F3EF",
-              borderBottom: "1px solid rgba(245,243,239,0.3)",
-              paddingBottom: "4px",
-              letterSpacing: "0.15em",
+              position: "absolute", inset: 0, pointerEvents: "none",
+              background: "linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.2) 100%)",
             }}
-          >
-            הצג פרויקטים
-          </button>
-          <span style={{ color: "#3A3835" }}>·</span>
-          <button
-            onClick={() => document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" })}
-            className="text-sm font-semibold tracking-widest uppercase transition-all duration-300 hover:opacity-70"
-            style={{
-              color: "#C9A84C",
-              borderBottom: "1px solid rgba(201,168,76,0.3)",
-              paddingBottom: "4px",
-              letterSpacing: "0.15em",
-            }}
-          >
-            בואו נדבר
-          </button>
-        </motion.div>
-
-        {/* Stats row */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 2 }}
-          className="flex items-center justify-center gap-12 md:gap-20 mt-20 flex-wrap"
-        >
-          {[
-            { value: "200+", label: "פרויקטים" },
-            { value: "15+", label: "שנות ניסיון" },
-            { value: "100%", label: "שביעות רצון" },
-          ].map((s, i) => (
-            <div key={i} className="text-center">
-              <div
-                className="text-2xl md:text-3xl font-bold mb-1"
-                style={{ fontFamily: "var(--font-manrope)", color: "#C9A84C" }}
-              >
-                {s.value}
-              </div>
-              <div className="text-xs uppercase tracking-widest" style={{ color: "#3A3835" }}>
-                {s.label}
-              </div>
-            </div>
-          ))}
-        </motion.div>
-      </div>
-
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2.5, duration: 1 }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3"
-      >
-        <div className="text-xs tracking-[0.3em] uppercase" style={{ color: "#3A3835" }}>
-          גלול
-        </div>
-        <div className="w-px h-12 overflow-hidden" style={{ background: "rgba(201,168,76,0.1)" }}>
-          <motion.div
-            animate={{ y: ["-100%", "200%"] }}
-            transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-            className="w-full h-1/2"
-            style={{ background: "linear-gradient(to bottom, transparent, #C9A84C)" }}
           />
+
+          {/* Canvas particles */}
+          <canvas
+            ref={canvasRef}
+            style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.5 }}
+          />
+
+          {/* Bottom fade into next section */}
+          <div
+            style={{
+              position: "absolute", bottom: 0, left: 0, right: 0, height: "200px",
+              background: "linear-gradient(to bottom, transparent, #080807)",
+              pointerEvents: "none", zIndex: 10,
+            }}
+          />
+
+          {/* HERO TEXT — fades out as you scroll */}
+          <div
+            ref={textRef}
+            style={{
+              position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center", zIndex: 5,
+              textAlign: "center", padding: "0 24px",
+              transition: "opacity 0.05s linear",
+            }}
+          >
+            <motion.p
+              initial={{ opacity: 0, letterSpacing: "0.3em" }}
+              animate={{ opacity: 1, letterSpacing: "0.5em" }}
+              transition={{ duration: 2, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              style={{ fontSize: "12px", fontWeight: 500, textTransform: "uppercase",
+                marginBottom: "32px", letterSpacing: "0.5em", color: "#C9A84C" }}
+            >
+              חידוש מבנים · בנייה פרימיום
+            </motion.p>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 60, filter: "blur(20px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ duration: 1.4, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              style={{
+                fontWeight: 800, lineHeight: 0.92, marginBottom: "32px",
+                fontSize: "clamp(3.5rem, 10vw, 9rem)", letterSpacing: "-0.02em",
+              }}
+            >
+              <span style={{ color: "#F5F3EF", display: "block" }}>בנייה שמשאירה</span>
+              <span style={{
+                display: "block",
+                background: "linear-gradient(135deg, #9A7A2E 0%, #C9A84C 45%, #E8C97A 100%)",
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
+              }}>
+                רושם לנצח
+              </span>
+            </motion.h1>
+
+            <motion.div
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 1.2, delay: 1.2, ease: [0.22, 1, 0.36, 1] }}
+              style={{
+                height: "1px", width: "120px", margin: "0 auto 32px",
+                background: "linear-gradient(90deg, transparent, #C9A84C, transparent)",
+                transformOrigin: "center",
+              }}
+            />
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 1.4, ease: [0.22, 1, 0.36, 1] }}
+              style={{ color: "#A0A09A", maxWidth: "560px", margin: "0 auto 48px",
+                lineHeight: 1.8, fontSize: "17px", fontWeight: 300 }}
+            >
+              פרויקטי שיפוץ ובנייה פרימיום · מהתכנון ועד המסירה · 15 שנות ניסיון
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 1.6, ease: [0.22, 1, 0.36, 1] }}
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "24px", flexWrap: "wrap" }}
+            >
+              <button
+                onClick={() => document.querySelector("#portfolio")?.scrollIntoView({ behavior: "smooth" })}
+                style={{ color: "#F5F3EF", fontSize: "13px", fontWeight: 600, letterSpacing: "0.15em",
+                  textTransform: "uppercase", borderBottom: "1px solid rgba(245,243,239,0.3)",
+                  paddingBottom: "4px", background: "none", border: "none", cursor: "pointer",
+                  borderBottom: "1px solid rgba(245,243,239,0.3)" as any }}
+              >
+                הצג פרויקטים
+              </button>
+              <span style={{ color: "#3A3835" }}>·</span>
+              <button
+                onClick={() => document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" })}
+                style={{ color: "#C9A84C", fontSize: "13px", fontWeight: 600, letterSpacing: "0.15em",
+                  textTransform: "uppercase", borderBottom: "1px solid rgba(201,168,76,0.3)",
+                  paddingBottom: "4px", background: "none", border: "none", cursor: "pointer" }}
+              >
+                בואו נדבר
+              </button>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 2 }}
+              style={{ display: "flex", alignItems: "center", justifyContent: "center",
+                gap: "80px", marginTop: "80px", flexWrap: "wrap" }}
+            >
+              {[
+                { value: "200+", label: "פרויקטים" },
+                { value: "15+", label: "שנות ניסיון" },
+                { value: "100%", label: "שביעות רצון" },
+              ].map((s, i) => (
+                <div key={i} style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 700,
+                    marginBottom: "4px", color: "#C9A84C" }}>{s.value}</div>
+                  <div style={{ fontSize: "11px", textTransform: "uppercase",
+                    letterSpacing: "0.2em", color: "#3A3835" }}>{s.label}</div>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+
+          {/* Scroll indicator */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 2.5, duration: 1 }}
+            style={{
+              position: "absolute", bottom: "40px", left: "50%", transform: "translateX(-50%)",
+              zIndex: 20, display: "flex", flexDirection: "column", alignItems: "center", gap: "12px",
+            }}
+          >
+            <div style={{ fontSize: "11px", letterSpacing: "0.3em", textTransform: "uppercase", color: "#3A3835" }}>
+              גלול
+            </div>
+            <div style={{ width: "1px", height: "48px", overflow: "hidden", background: "rgba(201,168,76,0.1)" }}>
+              <motion.div
+                animate={{ y: ["-100%", "200%"] }}
+                transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                style={{ width: "100%", height: "50%",
+                  background: "linear-gradient(to bottom, transparent, #C9A84C)" }}
+              />
+            </div>
+          </motion.div>
         </div>
-      </motion.div>
-    </section>
+      </section>
+    </>
   );
 }
