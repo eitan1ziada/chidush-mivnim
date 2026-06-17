@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Preloader from "@/app/components/layout/Preloader";
 import Cursor from "@/app/components/layout/Cursor";
 import ScrollProgress from "@/app/components/layout/ScrollProgress";
@@ -17,6 +17,41 @@ import Footer from "@/app/components/layout/Footer";
 
 export default function Home() {
   const [loaded, setLoaded] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (!loaded) return;
+    const video = videoRef.current;
+    if (!video) return;
+
+    let rafId: number;
+    let lastTime: number | null = null;
+
+    const reversePlay = (timestamp: number) => {
+      if (lastTime === null) lastTime = timestamp;
+      const dt = (timestamp - lastTime) / 1000;
+      lastTime = timestamp;
+      video.currentTime = Math.max(0, video.currentTime - dt);
+      if (video.currentTime <= 0) {
+        lastTime = null;
+        video.play();
+      } else {
+        rafId = requestAnimationFrame(reversePlay);
+      }
+    };
+
+    const onEnded = () => {
+      lastTime = null;
+      rafId = requestAnimationFrame(reversePlay);
+    };
+
+    video.addEventListener("ended", onEnded);
+    video.play();
+    return () => {
+      video.removeEventListener("ended", onEnded);
+      cancelAnimationFrame(rafId);
+    };
+  }, [loaded]);
 
 
   useEffect(() => {
@@ -39,10 +74,10 @@ export default function Home() {
       {loaded && (
         <>
           <video
-            autoPlay
+            ref={videoRef}
             muted
-            loop
             playsInline
+            preload="auto"
             style={{
               position: "fixed", inset: 0, width: "100%", height: "100%",
               objectFit: "cover", zIndex: -1, opacity: 0.25,
