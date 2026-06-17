@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Preloader from "@/app/components/layout/Preloader";
 import Cursor from "@/app/components/layout/Cursor";
 import ScrollProgress from "@/app/components/layout/ScrollProgress";
@@ -17,47 +17,6 @@ import Footer from "@/app/components/layout/Footer";
 
 export default function Home() {
   const [loaded, setLoaded] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (!loaded) return;
-    const video = videoRef.current;
-    if (!video) return;
-
-    let forward = true;
-    let lastTs: number | null = null;
-    let rafId: number;
-
-    const tick = (ts: number) => {
-      if (lastTs === null) { lastTs = ts; rafId = requestAnimationFrame(tick); return; }
-      const dt = (ts - lastTs) / 1000;
-      lastTs = ts;
-
-      if (forward) {
-        video.currentTime = Math.min(video.duration, video.currentTime + dt);
-        if (video.currentTime >= video.duration) forward = false;
-      } else {
-        video.currentTime = Math.max(0, video.currentTime - dt);
-        if (video.currentTime <= 0) forward = true;
-      }
-
-      rafId = requestAnimationFrame(tick);
-    };
-
-    const start = () => {
-      video.pause();
-      rafId = requestAnimationFrame(tick);
-    };
-
-    if (video.readyState >= 2) {
-      start();
-    } else {
-      video.addEventListener("canplay", start, { once: true });
-      video.load();
-    }
-
-    return () => cancelAnimationFrame(rafId);
-  }, [loaded]);
 
 
   useEffect(() => {
@@ -80,16 +39,16 @@ export default function Home() {
       {loaded && (
         <>
           <video
-            ref={videoRef}
+            autoPlay
             muted
+            loop
             playsInline
-            preload="auto"
             style={{
               position: "fixed", inset: 0, width: "100%", height: "100%",
               objectFit: "cover", zIndex: -1, opacity: 0.25,
             }}
           >
-            <source src="/house-animation.mp4" type="video/mp4" />
+            <source src="/house-pingpong.mp4" type="video/mp4" />
           </video>
           <ScrollProgress />
           <Navbar />
