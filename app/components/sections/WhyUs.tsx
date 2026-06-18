@@ -29,7 +29,7 @@ export default function WhyUs() {
           </h2>
         </motion.div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px" }} className="why-grid">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "28px" }} className="why-grid">
           {WHY_US.map((item, i) => {
             const Icon = ICONS[item.icon];
             return (
@@ -39,25 +39,47 @@ export default function WhyUs() {
                 animate={inView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.7, delay: i * 0.1 }}
                 style={{
-                  padding: "28px 24px",
-                  background: "rgba(255,255,255,0.02)",
-                  border: "1px solid rgba(201,168,76,0.1)",
-                  borderRadius: "4px",
+                  padding: "40px 32px",
+                  background: "linear-gradient(135deg, rgba(15,14,13,0.8) 0%, rgba(20,18,16,0.9) 100%)",
+                  border: "2px solid rgba(201,168,76,0.4)",
+                  borderRadius: "8px",
                   textAlign: "center",
-                  cursor: "default",
+                  cursor: "pointer",
+                  position: "relative",
+                  overflow: "hidden",
+                  transition: "all 0.4s ease",
                 }}
+                whileHover={{ y: -8, borderColor: "rgba(201,168,76,0.8)", boxShadow: "0 20px 40px rgba(201,168,76,0.15)" }}
+                className="why-card"
               >
+                {/* Glow background on hover */}
                 <div style={{
-                  width: "48px", height: "48px", borderRadius: "4px",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  background: "rgba(201,168,76,0.1)", margin: "0 auto 20px",
+                  position: "absolute",
+                  inset: 0,
+                  background: "radial-gradient(circle at center, rgba(201,168,76,0.1) 0%, transparent 70%)",
+                  opacity: 0,
+                  pointerEvents: "none",
+                }} className="glow" />
+
+                <div style={{
+                  position: "relative",
+                  zIndex: 1,
                 }}>
-                  {Icon && <Icon size={22} color="#C9A84C" />}
+                  <div style={{
+                    width: "64px", height: "64px", borderRadius: "8px",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    background: "linear-gradient(135deg, rgba(201,168,76,0.25) 0%, rgba(201,168,76,0.08) 100%)",
+                    border: "1px solid rgba(201,168,76,0.3)",
+                    margin: "0 auto 28px",
+                    transition: "all 0.4s ease",
+                  }} className="icon-box">
+                    {Icon && <Icon size={28} color="#C9A84C" />}
+                  </div>
+                  <h3 style={{ fontSize: "19px", fontWeight: 700, color: "#F5F3EF", marginBottom: "14px" }}>
+                    {item.title}
+                  </h3>
+                  <p style={{ fontSize: "15px", color: "#A0A09A", lineHeight: 1.8 }}>{item.desc}</p>
                 </div>
-                <h3 style={{ fontSize: "17px", fontWeight: 700, color: "#F5F3EF", marginBottom: "10px" }}>
-                  {item.title}
-                </h3>
-                <p style={{ fontSize: "14px", color: "#6B6762", lineHeight: 1.7 }}>{item.desc}</p>
               </motion.div>
             );
           })}
@@ -65,8 +87,25 @@ export default function WhyUs() {
       </div>
 
       <style>{`
-        @media (max-width: 900px) { .why-grid { grid-template-columns: repeat(2, 1fr) !important; } }
-        @media (max-width: 600px) { .why-grid { grid-template-columns: 1fr !important; } }
+        .why-card:hover .glow {
+          opacity: 1;
+        }
+        .why-card:hover .icon-box {
+          background: linear-gradient(135deg, rgba(201,168,76,0.4) 0%, rgba(201,168,76,0.15) 100%);
+          border-color: rgba(201,168,76,0.6);
+          transform: scale(1.1);
+        }
+        @media (max-width: 900px) {
+          .why-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 20px !important;
+          }
+        }
+        @media (max-width: 600px) {
+          .why-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
       `}</style>
     </section>
   );

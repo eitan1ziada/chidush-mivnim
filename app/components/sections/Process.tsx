@@ -17,7 +17,7 @@ export default function Process() {
         }}
       />
 
-      <div style={{ maxWidth: "700px", margin: "0 auto", padding: "0 24px", textAlign: "center" }}>
+      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", textAlign: "center" }}>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -32,7 +32,7 @@ export default function Process() {
           </h2>
         </motion.div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px" }}>
           {PROCESS_STEPS.map((step, i) => (
             <motion.div
               key={step.num}
@@ -40,29 +40,51 @@ export default function Process() {
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: i * 0.1 }}
               style={{
-                padding: "28px 32px",
-                background: "rgba(255,255,255,0.02)",
-                border: "1px solid rgba(201,168,76,0.12)",
-                borderRadius: "4px",
+                padding: "40px 36px",
+                background: "linear-gradient(135deg, rgba(15,14,13,0.8) 0%, rgba(20,18,16,0.9) 100%)",
+                border: "2px solid rgba(201,168,76,0.35)",
+                borderRadius: "8px",
                 textAlign: "center",
                 position: "relative",
                 overflow: "hidden",
+                cursor: "pointer",
+                transition: "all 0.4s ease",
               }}
+              whileHover={{ y: -6, borderColor: "rgba(201,168,76,0.7)", boxShadow: "0 20px 40px rgba(201,168,76,0.12)" }}
+              className="process-card"
             >
-              <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", fontSize: "120px", fontWeight: 900, color: "rgba(201,168,76,0.04)", pointerEvents: "none", userSelect: "none", lineHeight: 1 }}>
+              {/* Glow background */}
+              <div style={{
+                position: "absolute",
+                inset: 0,
+                background: "radial-gradient(circle at center, rgba(201,168,76,0.08) 0%, transparent 70%)",
+                opacity: 0,
+                pointerEvents: "none",
+              }} className="glow" />
+
+              <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", fontSize: "100px", fontWeight: 900, color: "rgba(201,168,76,0.06)", pointerEvents: "none", userSelect: "none", lineHeight: 1 }}>
                 {step.num}
               </div>
-              <p style={{ fontSize: "11px", letterSpacing: "3px", color: "#C9A84C", marginBottom: "8px", textTransform: "uppercase" }}>
-                שלב {step.num}
-              </p>
-              <h3 style={{ fontSize: "22px", fontWeight: 700, color: "#F5F3EF", marginBottom: "10px" }}>
-                {step.title}
-              </h3>
-              <p style={{ color: "#6B6762", fontSize: "15px", lineHeight: 1.7 }}>{step.desc}</p>
+
+              <div style={{ position: "relative", zIndex: 1 }}>
+                <p style={{ fontSize: "12px", letterSpacing: "3px", color: "#C9A84C", marginBottom: "12px", textTransform: "uppercase", fontWeight: 600 }}>
+                  שלב {step.num}
+                </p>
+                <h3 style={{ fontSize: "24px", fontWeight: 800, color: "#F5F3EF", marginBottom: "14px" }}>
+                  {step.title}
+                </h3>
+                <p style={{ color: "#A0A09A", fontSize: "16px", lineHeight: 1.8 }}>{step.desc}</p>
+              </div>
             </motion.div>
           ))}
         </div>
       </div>
+
+      <style>{`
+        .process-card:hover .glow {
+          opacity: 1;
+        }
+      `}</style>
     </section>
   );
 }

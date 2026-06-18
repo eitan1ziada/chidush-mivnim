@@ -39,12 +39,11 @@ export default function Owner() {
             style={{
               fontSize: "clamp(36px, 5vw, 64px)",
               fontWeight: 800,
-              lineHeight: 1.1,
+              lineHeight: 1.2,
               color: "#F5F0E8",
             }}
           >
-            מאחורי כל פרויקט —
-            <br />
+            מאחורי כל פרויקט{" "}
             <span style={{ background: "linear-gradient(135deg, #C9A84C, #E8C97A)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               אדם אחד שמוביל
             </span>
@@ -141,25 +140,29 @@ export default function Owner() {
             transition={{ duration: 0.8, delay: 0.3 }}
             style={{ textAlign: "right" }}
           >
-            <h3 style={{ fontSize: "clamp(28px, 3vw, 40px)", fontWeight: 800, color: "#F5F0E8", marginBottom: "8px" }}>
-              {OWNER.name}
-            </h3>
-            <p style={{ color: "#C9A84C", fontSize: "14px", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "32px" }}>
-              {OWNER.title}
-            </p>
+            <div style={{ textAlign: "center" }}>
+              <h3 style={{ fontSize: "clamp(28px, 3vw, 40px)", fontWeight: 800, color: "#F5F0E8", marginBottom: "8px" }}>
+                {OWNER.name}
+              </h3>
+              <p style={{ color: "#C9A84C", fontSize: "14px", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "32px" }}>
+                {OWNER.title}
+              </p>
+            </div>
 
             {/* gold divider */}
-            <div style={{ width: "60px", height: "1px", background: "linear-gradient(90deg, #C9A84C, transparent)", marginBottom: "32px", marginRight: "0", marginLeft: "auto" }} />
+            <div style={{ width: "60px", height: "1px", background: "linear-gradient(90deg, #C9A84C, transparent)", marginBottom: "32px", marginRight: "auto", marginLeft: "auto" }} />
 
-            <p style={{ color: "rgba(245,240,232,0.75)", fontSize: "17px", lineHeight: 1.9, marginBottom: "20px" }}>
-              {OWNER.bio}
-            </p>
-            <p style={{ color: "rgba(245,240,232,0.55)", fontSize: "16px", lineHeight: 1.9, marginBottom: "40px" }}>
-              {OWNER.bio2}
-            </p>
+            <div style={{ textAlign: "right" }}>
+              <p style={{ color: "rgba(245,240,232,0.75)", fontSize: "17px", lineHeight: 1.9, marginBottom: "20px" }}>
+                {OWNER.bio}
+              </p>
+              <p style={{ color: "rgba(245,240,232,0.55)", fontSize: "16px", lineHeight: 1.9, marginBottom: "40px" }}>
+                {OWNER.bio2}
+              </p>
+            </div>
 
             {/* stats row */}
-            <div style={{ display: "flex", gap: "40px", justifyContent: "flex-end" }}>
+            <div style={{ display: "flex", gap: "40px", justifyContent: "center" }}>
               {OWNER.stats.map((s, i) => (
                 <motion.div
                   key={s.label}
@@ -175,25 +178,27 @@ export default function Owner() {
             </div>
 
             {/* CTA */}
-            <motion.a
-              href="#contact"
-              initial={{ opacity: 0 }}
-              animate={inView ? { opacity: 1 } : {}}
-              transition={{ duration: 0.6, delay: 0.9 }}
-              style={{
-                display: "inline-block",
-                marginTop: "40px",
-                color: "#C9A84C",
-                fontSize: "15px",
-                letterSpacing: "2px",
-                textTransform: "uppercase",
-                borderBottom: "1px solid rgba(201,168,76,0.4)",
-                paddingBottom: "4px",
-                textDecoration: "none",
-              }}
-            >
-              דברו איתי ישירות ←
-            </motion.a>
+            <div style={{ textAlign: "center" }}>
+              <motion.a
+                href="#contact"
+                initial={{ opacity: 0 }}
+                animate={inView ? { opacity: 1 } : {}}
+                transition={{ duration: 0.6, delay: 0.9 }}
+                style={{
+                  display: "inline-block",
+                  marginTop: "40px",
+                  color: "#C9A84C",
+                  fontSize: "15px",
+                  letterSpacing: "2px",
+                  textTransform: "uppercase",
+                  borderBottom: "1px solid rgba(201,168,76,0.4)",
+                  paddingBottom: "4px",
+                  textDecoration: "none",
+                }}
+              >
+                דברו איתי ישירות ←
+              </motion.a>
+            </div>
           </motion.div>
         </div>
       </div>
