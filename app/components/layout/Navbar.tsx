@@ -68,38 +68,41 @@ export default function Navbar() {
           maxWidth: "1400px", margin: "0 auto",
           padding: "0 40px",
           height: scrolled ? "64px" : "80px",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
+          display: "grid",
+          gridTemplateColumns: "1fr auto 1fr",
+          alignItems: "center",
           transition: "height 0.5s ease",
-          direction: "ltr",
+          direction: "rtl",
         }}>
 
-          {/* ── Logo ── */}
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px", background: "none", border: "none", cursor: "pointer" }}
-          >
-            <span style={{
-              fontSize: "20px", fontWeight: 800, letterSpacing: "0.04em",
-              background: "linear-gradient(135deg, #9A7A2E 0%, #C9A84C 50%, #E8C97A 100%)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
-              lineHeight: 1,
-            }}>
-              {COMPANY.name}
-            </span>
-            <span style={{
-              fontSize: "9px", letterSpacing: "4px", color: "rgba(201,168,76,0.5)",
-              textTransform: "uppercase", fontWeight: 400,
-            }}>
-              בנייה פרימיום
-            </span>
-          </button>
+          {/* ── Logo — right edge ── */}
+          <div style={{ display: "flex", justifyContent: "flex-start" }}>
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px", background: "none", border: "none", cursor: "pointer" }}
+            >
+              <span style={{
+                fontSize: "20px", fontWeight: 800, letterSpacing: "0.04em",
+                background: "linear-gradient(135deg, #9A7A2E 0%, #C9A84C 50%, #E8C97A 100%)",
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
+                lineHeight: 1,
+              }}>
+                {COMPANY.name}
+              </span>
+              <span style={{
+                fontSize: "9px", letterSpacing: "4px", color: "rgba(201,168,76,0.5)",
+                textTransform: "uppercase", fontWeight: 400,
+              }}>
+                בנייה פרימיום
+              </span>
+            </button>
+          </div>
 
-          {/* ── Desktop links ── */}
+          {/* ── Nav links — exact center ── */}
           <ul
             style={{ display: "flex", alignItems: "center", gap: "0", listStyle: "none", margin: 0, padding: 0, position: "relative" }}
             onMouseLeave={() => setHovered(null)}
           >
-            {/* Animated underline */}
             <AnimatePresence>
               {hovered && (
                 <motion.div
@@ -110,8 +113,7 @@ export default function Navbar() {
                   style={{
                     position: "absolute", bottom: -4, height: "1px",
                     background: "linear-gradient(90deg, transparent, #C9A84C, transparent)",
-                    transformOrigin: "center",
-                    pointerEvents: "none",
+                    transformOrigin: "center", pointerEvents: "none",
                   }}
                 />
               )}
@@ -137,65 +139,32 @@ export default function Navbar() {
             ))}
           </ul>
 
-          {/* ── Right side ── */}
-          <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-            {/* Phone */}
-            <a
-              href={`tel:${COMPANY.phone}`}
-              style={{
-                fontSize: "13px", color: "rgba(201,168,76,0.6)", letterSpacing: "0.05em",
-                textDecoration: "none", transition: "color 0.2s",
-                fontWeight: 400,
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#C9A84C")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(201,168,76,0.6)")}
-            >
-              {COMPANY.phone}
-            </a>
-
-            {/* Divider */}
-            <div style={{ width: "1px", height: "20px", background: "rgba(201,168,76,0.15)" }} />
-
-            {/* CTA */}
+          {/* ── Empty left column (balance) ── */}
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            {/* Mobile hamburger */}
             <button
-              onClick={() => scrollTo("#contact")}
-              style={{
-                position: "relative", overflow: "hidden",
-                padding: "10px 28px", fontSize: "12px", fontWeight: 600,
-                letterSpacing: "3px", textTransform: "uppercase",
-                color: "#080807", cursor: "pointer", border: "none",
-                background: "linear-gradient(135deg, #9A7A2E 0%, #C9A84C 50%, #E8C97A 100%)",
-                transition: "opacity 0.2s, transform 0.2s",
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.85"; e.currentTarget.style.transform = "scale(1.03)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "scale(1)"; }}
+              onClick={() => setOpen(!open)}
+              className="flex md:hidden flex-col gap-1.5 p-2"
+              style={{ background: "none", border: "none", cursor: "pointer" }}
+              aria-label="תפריט"
             >
-              בואו נדבר
+              {[0, 1, 2].map((i) => (
+                <motion.span
+                  key={i}
+                  animate={
+                    open
+                      ? i === 0 ? { rotate: 45, y: 7 }
+                      : i === 1 ? { opacity: 0, scaleX: 0 }
+                      : { rotate: -45, y: -7 }
+                      : { rotate: 0, y: 0, opacity: 1, scaleX: 1 }
+                  }
+                  transition={{ duration: 0.3 }}
+                  style={{ display: "block", width: "22px", height: "1px", background: "#C9A84C", transformOrigin: "center" }}
+                />
+              ))}
             </button>
           </div>
 
-          {/* ── Mobile hamburger ── */}
-          <button
-            onClick={() => setOpen(!open)}
-            style={{ display: "none", flexDirection: "column", gap: "5px", padding: "8px", background: "none", border: "none", cursor: "pointer" }}
-            className="md-hidden-show"
-            aria-label="תפריט"
-          >
-            {[0, 1, 2].map((i) => (
-              <motion.span
-                key={i}
-                animate={
-                  open
-                    ? i === 0 ? { rotate: 45, y: 7 }
-                    : i === 1 ? { opacity: 0, scaleX: 0 }
-                    : { rotate: -45, y: -7 }
-                    : { rotate: 0, y: 0, opacity: 1, scaleX: 1 }
-                }
-                transition={{ duration: 0.3 }}
-                style={{ display: "block", width: "22px", height: "1px", background: "#C9A84C", transformOrigin: "center" }}
-              />
-            ))}
-          </button>
         </div>
       </motion.nav>
 
