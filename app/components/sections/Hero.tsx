@@ -59,33 +59,39 @@ export default function Hero() {
   const scene = video.scenes[sceneIdx];
 
   useEffect(() => {
-    const handleScroll = () => {
+    const vid = videosRef.current[0];
+    if (!vid) return;
+
+    // Preload fully before allowing scrub
+    vid.preload = "auto";
+    vid.load();
+
+    const scrub = () => {
       const container = containerRef.current;
-      if (!container) return;
+      if (!container || !vid.duration) return;
 
       const rect = container.getBoundingClientRect();
       const scrolled = -rect.top;
       const scrollable = container.offsetHeight - window.innerHeight;
-      const sectionProgress = Math.max(0, Math.min(1, scrolled / scrollable));
+      const p = Math.max(0, Math.min(1, scrolled / scrollable));
 
-      setProgress(sectionProgress);
+      setProgress(p);
 
-      // Scrub video
-      const vid = videosRef.current[0];
-      if (vid && vid.duration) {
-        vid.currentTime = sectionProgress * vid.duration;
+      const targetTime = p * vid.duration;
+      // fastSeek jumps to nearest keyframe instantly
+      if (typeof vid.fastSeek === "function") {
+        vid.fastSeek(targetTime);
+      } else {
+        vid.currentTime = targetTime;
       }
 
-      // Scene index
-      const idx = VIDEOS[0].scenes.findIndex(
-        (s) => sectionProgress >= s.from && sectionProgress < s.to
-      );
+      const idx = VIDEOS[0].scenes.findIndex(s => p >= s.from && p < s.to);
       setSceneIdx(idx !== -1 ? idx : VIDEOS[0].scenes.length - 1);
-      setShowCards(sectionProgress >= 0.88);
+      setShowCards(p >= 0.88);
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", scrub, { passive: true });
+    return () => window.removeEventListener("scroll", scrub);
   }, []);
 
   const totalHeight = `${SCROLL_MULTIPLIER * VIDEOS.length * 100}vh`;
@@ -142,6 +148,7 @@ export default function Hero() {
             muted
             playsInline
             preload="auto"
+            onLoadedData={(e) => { (e.target as HTMLVideoElement).currentTime = 0; }}
             style={{
               position: "absolute",
               inset: 0,
