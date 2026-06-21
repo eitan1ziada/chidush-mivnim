@@ -118,7 +118,7 @@ export default function Hero() {
           opacity: 0.35,
         }}
       >
-        <source src="/house-pingpong.mp4" type="video/mp4" />
+        <source src="/house-bg.mp4" type="video/mp4" />
       </video>
 
       {/* ── Video sections ── */}
