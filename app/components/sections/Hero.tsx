@@ -44,8 +44,7 @@ const VIDEOS = [
   },
 ];
 
-const VH = typeof window !== "undefined" ? window.innerHeight : 1080;
-const SECTION_HEIGHT = VH * 5; // 500vh per video
+const SCROLL_MULTIPLIER = 5; // 500vh per video
 
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -60,47 +59,39 @@ export default function Hero() {
   const scene = video.scenes[sceneIdx];
 
   useEffect(() => {
-    let raf: number;
+    const handleScroll = () => {
+      const container = containerRef.current;
+      if (!container) return;
 
-    const tick = () => {
-      const scrollY = window.scrollY;
-      const totalSections = VIDEOS.length;
+      const rect = container.getBoundingClientRect();
+      const scrolled = -rect.top;
+      const scrollable = container.offsetHeight - window.innerHeight;
+      const sectionProgress = Math.max(0, Math.min(1, scrolled / scrollable));
 
-      // Which video section are we in?
-      const sectionIdx = Math.floor(scrollY / SECTION_HEIGHT);
-      const clampedSectionIdx = Math.min(sectionIdx, totalSections - 1);
-
-      // Progress within current section (0 to 1)
-      const scrollInSection = scrollY - (clampedSectionIdx * SECTION_HEIGHT);
-      const sectionProgress = Math.max(0, Math.min(1, scrollInSection / SECTION_HEIGHT));
-
-      setVideoIdx(clampedSectionIdx);
       setProgress(sectionProgress);
 
-      // Scrub current video
-      if (videosRef.current[clampedSectionIdx]?.duration) {
-        videosRef.current[clampedSectionIdx]!.currentTime =
-          sectionProgress * videosRef.current[clampedSectionIdx]!.duration * 0.9;
+      // Scrub video
+      const vid = videosRef.current[0];
+      if (vid && vid.duration) {
+        vid.currentTime = sectionProgress * vid.duration;
       }
 
       // Scene index
-      const idx = video.scenes.findIndex(
+      const idx = VIDEOS[0].scenes.findIndex(
         (s) => sectionProgress >= s.from && sectionProgress < s.to
       );
-      setSceneIdx(idx !== -1 ? idx : 3);
+      setSceneIdx(idx !== -1 ? idx : VIDEOS[0].scenes.length - 1);
       setShowCards(sectionProgress >= 0.88);
-
-      raf = requestAnimationFrame(tick);
     };
 
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [video.scenes]);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-  const totalHeight = SECTION_HEIGHT * VIDEOS.length;
+  const totalHeight = `${SCROLL_MULTIPLIER * VIDEOS.length * 100}vh`;
 
   return (
-    <div ref={containerRef} style={{ height: `${totalHeight}px`, position: "relative" }}>
+    <div ref={containerRef} style={{ height: totalHeight, position: "relative" }}>
 
       {/* ── Background video (fixed) ── */}
       <video
@@ -139,7 +130,7 @@ export default function Hero() {
             top: 0,
             height: "100vh",
             overflow: "hidden",
-            display: videoIdx === idx ? "block" : "none",
+            visibility: videoIdx === idx ? "visible" : "hidden",
           }}
         >
 
