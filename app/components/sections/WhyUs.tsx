@@ -98,13 +98,27 @@ export default function WhyUs() {
         @media (max-width: 900px) {
           .why-grid {
             grid-template-columns: repeat(2, 1fr) !important;
-            gap: 20px !important;
+            gap: 14px !important;
           }
+          .why-card {
+            padding: 22px 14px !important;
+            border-width: 1px !important;
+          }
+          .why-card .icon-box {
+            width: 44px !important;
+            height: 44px !important;
+            margin-bottom: 14px !important;
+            border-radius: 6px !important;
+          }
+          .why-card .icon-box svg { width: 20px !important; height: 20px !important; }
+          .why-card h3 { font-size: 16px !important; margin-bottom: 8px !important; }
+          .why-card p { font-size: 13px !important; line-height: 1.6 !important; }
         }
         @media (max-width: 600px) {
-          .why-grid {
-            grid-template-columns: 1fr !important;
-          }
+          .why-grid { gap: 10px !important; }
+          .why-card { padding: 18px 12px !important; }
+          .why-card h3 { font-size: 14.5px !important; }
+          .why-card p { font-size: 12px !important; }
         }
       `}</style>
     </section>

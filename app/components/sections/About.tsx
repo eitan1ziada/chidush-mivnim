@@ -138,6 +138,9 @@ export default function About() {
 
         <style>{`
           .value-card:hover .glow { opacity: 1; }
+          @media (max-width: 600px) {
+            .value-card { padding: 18px 14px !important; }
+          }
         `}</style>
       </div>
     </section>

@@ -41,15 +41,16 @@ export default function Portfolio() {
                 initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.5, delay: i * 0.07 }}
                 onClick={() => setSelected(p)}
+                className="portfolio-card"
                 style={{ cursor: "pointer", borderRadius: "4px", overflow: "hidden", border: "1px solid rgba(201,168,76,0.1)" }}
               >
                 {/* Image */}
                 <div style={{ aspectRatio: "4/3", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", background: `linear-gradient(135deg, #1A1917 0%, ${p.color}22 100%)` }}>
                   <div style={{ position: "absolute", inset: 0, opacity: 0.08, backgroundImage: "linear-gradient(rgba(201,168,76,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(201,168,76,0.4) 1px, transparent 1px)", backgroundSize: "30px 30px" }} />
-                  <div style={{ fontSize: "64px", fontWeight: 800, opacity: 0.2, color: p.color }}>{p.id}</div>
+                  <div className="portfolio-num" style={{ fontSize: "64px", fontWeight: 800, opacity: 0.2, color: p.color }}>{p.id}</div>
                 </div>
                 {/* Info */}
-                <div style={{ padding: "20px", background: "rgba(255,255,255,0.02)", textAlign: "center" }}>
+                <div className="portfolio-info" style={{ padding: "20px", background: "rgba(255,255,255,0.02)", textAlign: "center" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                     <span style={{ fontSize: "12px", color: "#6B6762" }}>{p.year}</span>
                     <h3 style={{ fontWeight: 700, fontSize: "15px", color: "#F5F3EF" }}>{p.title}</h3>
@@ -88,8 +89,20 @@ export default function Portfolio() {
       </AnimatePresence>
 
       <style>{`
-        @media (max-width: 900px) { .portfolio-grid { grid-template-columns: repeat(2, 1fr) !important; } }
-        @media (max-width: 600px) { .portfolio-grid { grid-template-columns: 1fr !important; } }
+        @media (max-width: 900px) {
+          .portfolio-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 14px !important; }
+          .portfolio-info { padding: 14px 12px !important; }
+          .portfolio-num { font-size: 44px !important; }
+          .portfolio-info h3 { font-size: 14px !important; }
+          .portfolio-info p { font-size: 12px !important; line-height: 1.5 !important; }
+        }
+        @media (max-width: 600px) {
+          .portfolio-grid { gap: 10px !important; }
+          .portfolio-info { padding: 12px 10px !important; }
+          .portfolio-num { font-size: 38px !important; }
+          .portfolio-info h3 { font-size: 13px !important; }
+          .portfolio-info p { font-size: 11px !important; }
+        }
       `}</style>
     </section>
   );

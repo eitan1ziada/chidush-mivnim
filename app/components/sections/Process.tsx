@@ -32,7 +32,7 @@ export default function Process() {
           </h2>
         </motion.div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px" }}>
+        <div className="process-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px" }}>
           {PROCESS_STEPS.map((step, i) => (
             <motion.div
               key={step.num}
@@ -83,6 +83,21 @@ export default function Process() {
       <style>{`
         .process-card:hover .glow {
           opacity: 1;
+        }
+        @media (max-width: 900px) {
+          .process-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 14px !important;
+          }
+          .process-card { padding: 24px 14px !important; border-width: 1px !important; }
+          .process-card h3 { font-size: 17px !important; margin-bottom: 8px !important; }
+          .process-card p:last-child { font-size: 13px !important; line-height: 1.6 !important; }
+        }
+        @media (max-width: 600px) {
+          .process-grid { gap: 10px !important; }
+          .process-card { padding: 20px 12px !important; }
+          .process-card h3 { font-size: 15px !important; }
+          .process-card p:last-child { font-size: 12px !important; }
         }
       `}</style>
     </section>

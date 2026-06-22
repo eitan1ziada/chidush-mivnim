@@ -109,7 +109,7 @@ export default function Contact() {
               </motion.div>
             ) : (
               <motion.form key="form" onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+                <div className="contact-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
                   <div>
                     <input {...register("name")} placeholder="שם מלא *" style={inputStyle} />
                     {errors.name && <p style={{ color: "#E87A7A", fontSize: "12px", marginTop: "4px" }}>{errors.name.message}</p>}
@@ -176,7 +176,12 @@ export default function Contact() {
         </motion.div>
       </div>
 
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 560px) {
+          .contact-row { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </section>
   );
 }
