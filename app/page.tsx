@@ -10,9 +10,9 @@ import WhyUs from "@/app/components/sections/WhyUs";
 import Portfolio from "@/app/components/sections/Portfolio";
 import Process from "@/app/components/sections/Process";
 import Testimonials from "@/app/components/sections/Testimonials";
-import FAQ from "@/app/components/sections/FAQ";
 import Contact from "@/app/components/sections/Contact";
 import Footer from "@/app/components/layout/Footer";
+import FaqBot from "@/app/components/layout/FaqBot";
 
 export default function Home() {
   const [loaded, setLoaded] = useState(false);
@@ -47,10 +47,10 @@ export default function Home() {
             <Portfolio />
             <Process />
             <Testimonials />
-            <FAQ />
             <Contact />
           </main>
           <Footer />
+          <FaqBot />
         </>
       )}
     </>
