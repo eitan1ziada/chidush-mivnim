@@ -59,7 +59,7 @@ export default function About() {
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7, delay: 0.2 }}
-          style={{ color: "#B8B4AE", fontSize: "18px", lineHeight: 1.9, marginBottom: "16px", maxWidth: "680px", margin: "0 auto 16px" }}
+          style={{ color: "#F0ECE4", fontSize: "20px", fontWeight: 500, lineHeight: 1.9, marginBottom: "16px", maxWidth: "680px", margin: "0 auto 16px" }}
         >
           חידוש מבנים היא חברת בנייה ושיפוץ פרימיום המובילה בישראל. אנו מאמינים שכל מבנה הוא יצירת אמנות — ומחויבים להוציא לפועל את החזון שלכם בדיוק כפי שדמיינתם אותו.
         </motion.p>
@@ -67,7 +67,7 @@ export default function About() {
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7, delay: 0.3 }}
-          style={{ color: "#6B6762", fontSize: "16px", lineHeight: 1.9, maxWidth: "600px", margin: "0 auto 56px" }}
+          style={{ color: "#C7C2BA", fontSize: "17px", lineHeight: 1.9, maxWidth: "600px", margin: "0 auto 56px" }}
         >
           מהתכנון הראשוני ועד למסירת המפתח, אנו מלווים אתכם בכל שלב עם צוות מקצועי, חומרים מהמובחרים ותשומת לב לכל פרט.
         </motion.p>
@@ -101,22 +101,44 @@ export default function About() {
           transition={{ duration: 0.7, delay: 0.5 }}
           style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px", maxWidth: "600px", margin: "0 auto" }}
         >
-          {VALUES.map((v) => (
-            <div
+          {VALUES.map((v, i) => (
+            <motion.div
               key={v.title}
+              initial={{ opacity: 0, y: 30 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.55 + i * 0.1 }}
+              whileHover={{ y: -8, borderColor: "rgba(201,168,76,0.8)", boxShadow: "0 20px 40px rgba(201,168,76,0.15)" }}
+              className="value-card"
               style={{
-                padding: "20px",
-                background: "rgba(255,255,255,0.02)",
-                border: "1px solid rgba(201,168,76,0.12)",
-                borderRadius: "4px",
+                padding: "28px 24px",
+                background: "linear-gradient(135deg, rgba(15,14,13,0.8) 0%, rgba(20,18,16,0.9) 100%)",
+                border: "2px solid rgba(201,168,76,0.4)",
+                borderRadius: "8px",
                 textAlign: "center",
+                cursor: "pointer",
+                position: "relative",
+                overflow: "hidden",
+                transition: "all 0.4s ease",
               }}
             >
-              <div style={{ fontWeight: 700, color: "#C9A84C", marginBottom: "6px", fontSize: "16px" }}>{v.title}</div>
-              <div style={{ fontSize: "14px", color: "#6B6762" }}>{v.desc}</div>
-            </div>
+              <div style={{
+                position: "absolute",
+                inset: 0,
+                background: "radial-gradient(circle at center, rgba(201,168,76,0.1) 0%, transparent 70%)",
+                opacity: 0,
+                pointerEvents: "none",
+              }} className="glow" />
+              <div style={{ position: "relative", zIndex: 1 }}>
+                <div style={{ fontWeight: 700, color: "#C9A84C", marginBottom: "8px", fontSize: "18px" }}>{v.title}</div>
+                <div style={{ fontSize: "14px", color: "#A0A09A", lineHeight: 1.7 }}>{v.desc}</div>
+              </div>
+            </motion.div>
           ))}
         </motion.div>
+
+        <style>{`
+          .value-card:hover .glow { opacity: 1; }
+        `}</style>
       </div>
     </section>
   );
