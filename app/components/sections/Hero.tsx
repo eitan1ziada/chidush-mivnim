@@ -66,6 +66,31 @@ export default function Hero() {
     vid.preload = "auto";
     vid.load();
 
+    let targetTime = 0;     // where scroll wants the video to be
+    let currentTime = 0;    // smoothed playhead we ease toward target
+    let rafId = 0;
+    let seeking = false;
+
+    // rAF loop: ease the playhead toward the scroll target. Works identically
+    // in both directions (forward and backward) and stays smooth even when
+    // the browser is still resolving a previous seek.
+    const tick = () => {
+      if (vid.duration) {
+        // ease toward target
+        currentTime += (targetTime - currentTime) * 0.18;
+        if (Math.abs(targetTime - currentTime) < 0.005) currentTime = targetTime;
+        // only issue a new seek when the previous one has settled
+        if (!seeking && Math.abs(vid.currentTime - currentTime) > 0.01) {
+          seeking = true;
+          try { vid.currentTime = currentTime; } catch {}
+        }
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+    const onSeeked = () => { seeking = false; };
+    vid.addEventListener("seeked", onSeeked);
+    rafId = requestAnimationFrame(tick);
+
     const scrub = () => {
       const container = containerRef.current;
       if (!container || !vid.duration) return;
@@ -76,14 +101,7 @@ export default function Hero() {
       const p = Math.max(0, Math.min(1, scrolled / scrollable));
 
       setProgress(p);
-
-      const targetTime = p * vid.duration;
-      // fastSeek jumps to nearest keyframe instantly
-      if (typeof vid.fastSeek === "function") {
-        vid.fastSeek(targetTime);
-      } else {
-        vid.currentTime = targetTime;
-      }
+      targetTime = p * vid.duration;
 
       const idx = VIDEOS[0].scenes.findIndex(s => p >= s.from && p < s.to);
       setSceneIdx(idx !== -1 ? idx : VIDEOS[0].scenes.length - 1);
@@ -91,7 +109,12 @@ export default function Hero() {
     };
 
     window.addEventListener("scroll", scrub, { passive: true });
-    return () => window.removeEventListener("scroll", scrub);
+    scrub();
+    return () => {
+      window.removeEventListener("scroll", scrub);
+      vid.removeEventListener("seeked", onSeeked);
+      cancelAnimationFrame(rafId);
+    };
   }, []);
 
   const totalHeight = `${SCROLL_MULTIPLIER * VIDEOS.length * 100}vh`;
