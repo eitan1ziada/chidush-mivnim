@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ShaderAnimation } from "@/app/components/ui/shader-lines";
 
 export default function Preloader({ onDone }: { onDone: () => void }) {
   const [exiting, setExiting] = useState(false);
@@ -14,7 +15,9 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
 
   useEffect(() => {
     timerRef.current = setTimeout(handleDone, 5000);
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, []);
 
   return (
@@ -25,80 +28,84 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
-          style={{ position: "fixed", inset: 0, zIndex: 9999, background: "#060504" }}
+          style={{ position: "fixed", inset: 0, zIndex: 9999, overflow: "hidden", background: "#000" }}
         >
-          {/* Video background */}
+          {/* Layer 1: Video background */}
           <video
-            autoPlay muted loop playsInline
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+            autoPlay
+            muted
+            loop
+            playsInline
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
           >
             <source src="/house-animation.mp4" type="video/mp4" />
           </video>
 
-          {/* Overlay */}
+          {/* Layer 2: Shader animation overlay (mix-blend-mode for effect) */}
+          <div style={{
+            position: "absolute", inset: 0,
+            mixBlendMode: "screen",
+            opacity: 0.35,
+          }}>
+            <ShaderAnimation />
+          </div>
+
+          {/* Layer 3: Dark gradient overlay */}
           <div style={{
             position: "absolute", inset: 0, pointerEvents: "none",
-            background: "linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.65) 100%)",
+            background: "linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.45) 100%)",
           }} />
 
-          {/* Content */}
+          {/* Brand name */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.9 }}
+            transition={{ delay: 0.6, duration: 0.9 }}
             style={{
               position: "absolute", inset: 0,
               display: "flex", flexDirection: "column",
               alignItems: "center", justifyContent: "center",
-              zIndex: 10, padding: "0 24px", textAlign: "center",
+              zIndex: 10,
             }}
           >
-            {/* Gold line top */}
-            <motion.div
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              style={{
-                width: "40px", height: "1px", marginBottom: "24px",
-                background: "linear-gradient(90deg, transparent, #C9A84C, transparent)",
-              }}
-            />
-
             <div style={{
-              fontSize: "clamp(32px, 10vw, 64px)", fontWeight: 800, letterSpacing: "0.08em",
-              background: "linear-gradient(135deg, #9A7A2E, #C9A84C, #E8C97A)",
+              fontSize: "clamp(28px, 5vw, 60px)", fontWeight: 800, letterSpacing: "0.1em",
+              background: "linear-gradient(135deg, #9A7A2E, #C9A84C, #E8C97A, #C9A84C)",
               WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
-              lineHeight: 1.1, marginBottom: "16px",
+              marginBottom: "16px",
             }}>
               חידוש מבנים
             </div>
-
             <div style={{
-              width: "120px", height: "1px", margin: "0 auto 16px",
-              background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.7), transparent)",
+              width: "180px", height: "1px", margin: "0 auto 16px",
+              background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.8), transparent)",
             }} />
-
             <div style={{
-              fontSize: "clamp(9px, 2.5vw, 11px)", letterSpacing: "5px",
-              color: "rgba(255,255,255,0.5)", textTransform: "uppercase",
+              fontSize: "11px", letterSpacing: "6px",
+              color: "rgba(255,255,255,0.65)", textTransform: "uppercase",
             }}>
               בנייה פרימיום
             </div>
           </motion.div>
 
-          {/* Skip — bottom center */}
+          {/* Skip button */}
           <motion.button
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1.5, duration: 0.6 }}
+            transition={{ delay: 1.2, duration: 0.6 }}
             onClick={handleDone}
             style={{
-              position: "absolute", bottom: "6vh", left: "50%", transform: "translateX(-50%)",
-              zIndex: 20, background: "transparent",
-              border: "1px solid rgba(255,255,255,0.2)",
-              color: "rgba(255,255,255,0.45)", padding: "10px 32px",
-              fontSize: "10px", letterSpacing: "4px", cursor: "pointer",
-              textTransform: "uppercase",
+              position: "absolute", bottom: "5vh", right: "5vw", zIndex: 20,
+              background: "transparent", border: "1px solid rgba(255,255,255,0.3)",
+              color: "rgba(255,255,255,0.55)", padding: "8px 24px",
+              fontSize: "11px", letterSpacing: "3px", cursor: "pointer",
+              textTransform: "uppercase", backdropFilter: "blur(4px)",
             }}
           >
             דלג

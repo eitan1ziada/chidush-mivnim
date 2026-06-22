@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import Preloader from "@/app/components/layout/Preloader";
-import Cursor from "@/app/components/layout/Cursor";
 import ScrollProgress from "@/app/components/layout/ScrollProgress";
 import Navbar from "@/app/components/layout/Navbar";
 import Hero from "@/app/components/sections/Hero";
